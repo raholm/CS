@@ -9,3 +9,136 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+# Question 1
+
+## 1.1 
+
+```{r}
+
+mort<-read.csv2("../data/mortality_rate.csv")
+
+mort$LMR <- log(mort$Rate)
+
+n <- dim(mort)[1] 
+set.seed(123456)
+id  <- sample(1:n, floor(n*0.5)) 
+train<- mort[id, ]
+test<- mort[-id, ]
+
+```
+
+## 1.2
+
+```{r}
+
+myMSE <- function(lambda, pars){
+  
+  data  <- data.frame(pars$X, Y = pars$Y)  
+  model <- loess(formula = Y ~.,data = data, enp.target = lambda )
+  
+  MSE <- mean((pars$Ytest - predict(model,pars$Xtest))^2) 
+  MSEcounter <<- MSEcounter + 1
+  return(MSE)
+  }
+
+```
+
+
+
+## 1.3 
+
+```{r}
+MSEcounter <- 0 
+mylambda <- seq(0.1,40, by = 0.1)
+mypars <- list(X = train$Day, Y = train$LMR, Xtest = test$Day, Ytest = test$LMR)
+
+
+MSES<- sapply(mylambda, FUN = myMSE, pars = mypars)
+
+```
+
+## 1.4 
+
+```{r}
+library(ggplot2)
+
+ggplot() + geom_point(aes(x=mylambda, y = MSES))
+mylambda[which.min(MSES)]
+length(mylambda)
+
+# Don't understad the question regarding number of evaluations that were required?
+# didn't use optimize 
+```
+
+The optimal value for lambda is 11.7 where the minimum MSE is achived. The number of evaluations required were for this tast 400, the number of lambdas that we tried.
+
+## 1.5 
+
+
+```{r}
+
+MSEcounter <- 0
+myopt <- optimize(myMSE,lower = 0.1, upper = 40, tol = 0.01, pars = mypars)
+
+
+paste("The number of evaluations:",MSEcounter)
+```
+
+No, the optimize-function fails to find the minimum MSE and identifies it as 10.69 because of the small bump around lambda = 10 it think it has found the local minimum.
+
+The number of evaluations are lower then in the previous question though. (18 compared to 400)
+
+## 1.6
+
+```{r}
+MSEcounter <- 0
+
+optim(par=list(lambda=35), fn = myMSE, method = "BFGS", pars=mypars)$par
+
+paste("The number of evaluations:",MSEcounter)
+
+```
+
+The optimal lambda here was as we specified lambda = 35, this is because the MSE around lambda 35 is a platue and therefor the gradient (first derviative) becomes zero and the algorithm stops since there is no change.
+
+
+# Question 2
+
+## 2.1 
+
+```{r}
+load("../data/data.RData")
+```
+
+## 2.2 
+
+Derv
+
+## 2.3
+
+```{r}
+
+negLog <- function(x, data){
+  mu <- x[1]
+  sigma <- x[2]
+  n <- length(data)
+ loglik <- n*log(sigma) + (n/2)*log(2*pi) + (1/(2*sigma^2))*sum((data-mu)^2)
+  
+ return(loglik)
+}
+
+negLogGradient <- function(x, data) {
+  mu1 <- sum(data)/length(data)
+  c(mu1, (1/length(data))*sum((data - mu1)^2) )
+}
+
+optim(par =c(0, 1),fn = negLog,method = "BFGS", data = data)
+
+optim(par =c(0, 1),fn = negLog, gr = negLogGradient, method = "BFGS", data = data)
+
+
+```
+
+
+
