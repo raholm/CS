@@ -53,7 +53,8 @@ MSES <- sapply(lambdas, FUN=myMSE, pars=pars)
 ```{r}
 library(ggplot2)
 
-ggplot() + geom_point(aes(x=lambdas, y=MSES))
+ggplot() + geom_point(aes(x=lambdas, y=MSES)) +
+    xlab("Lambda") + ylab("MSE")
 ```
 
 The minimum MSE is achieved when lambda is `r lambdas[which.min(MSES)]` which is the optimal value of those we tried. The number of evaluations required for this task was `r length(lambdas)`, i.e. the number of lambdas that we tried.
