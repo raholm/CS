@@ -60,7 +60,6 @@ The minimum MSE is achieved when lambda is `r lambdas[which.min(MSES)]` which is
 
 ## 1.5
 
-
 ```{r}
 MSEcounter <- 0
 opt <- optimize(myMSE, lower=0.1, upper=40, tol=0.01, pars=pars)
@@ -79,7 +78,6 @@ paste("The number of evaluations:", MSEcounter)
 ```
 
 The optimal lambda here was as we specified, lambda = 35, because the MSE around lambda = 35 is a plateau and the gradient (first derivative) is therefore zero and the algorithm stops since there is no direction to go.
-
 
 # Question 2
 
@@ -123,7 +121,6 @@ and the derivative with respect to $\sigma^2$ and setting it to zero gives
 \hat{\sigma^2} = \frac{1}{n} \sum_{i=1}^{n} (x_{i} - \hat{\mu})^2.
 \end{equation*}
 
-
 ## 2.3
 
 ```{r}
@@ -154,7 +151,6 @@ optim(par =c(0, 1), fn=neg_llik, method="BFGS", data=data)
 paste("The number of evaluations of the log-likelihood:", neg_llik_counter)
 ```
 
-
 ```{r}
 neg_llik_counter <- 0
 neg_llikgrad_counter <- 0
@@ -163,13 +159,11 @@ paste("The number of evaluations of the log-likelihood:", neg_llik_counter)
 paste("The number of evaluations of the gradient:", neg_llikgrad_counter)
 ```
 
-
 ```{r}
 neg_llik_counter <- 0
 optim(par =c(0, 1), fn=neg_llik, method="CG", data=data)
 paste("The number of evaluations of the log-likelihood:", neg_llik_counter)
 ```
-
 
 ```{r}
 neg_llik_counter <- 0
@@ -178,7 +172,6 @@ optim(par =c(0, 1), fn=neg_llik, gr=neg_llikGradient, method="CG", data=data)
 paste("The number of evaluations of the gradient:", neg_llikgrad_counter)
 paste("The number of evaluations of the log-likelihood:", neg_llik_counter)
 ```
-
 
 ## 2.4
 
