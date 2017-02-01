@@ -1,9 +1,10 @@
 ---
 title: "Computational Statistics"
-subtitle: "Lab 2"
 author: "Emil K Svensson and Rasmus Holm"
-date: "`r Sys.Date()`"
-output: pdf_document
+date: '`r Sys.Date()`'
+output:
+  pdf_document: default
+subtitle: Lab 2
 ---
 
 ```{r setup, include=FALSE}
@@ -60,10 +61,8 @@ library(ggplot2)
 
 ggplot() + geom_point(aes(x=mylambda, y = MSES))
 mylambda[which.min(MSES)]
-length(mylambda)
+paste("Number of evaluations",length(mylambda))
 
-# Don't understad the question regarding number of evaluations that were required?
-# didn't use optimize
 ```
 
 The optimal value for lambda is 11.7 where the minimum MSE is achived. The number of evaluations required were for this tast 400, the number of lambdas that we tried.
@@ -111,6 +110,7 @@ Derv
 
 ```{r}
 negLog <- function(x, data){
+    negLogC <<- negLogC + 1 
     mu <- x[1]
     sigma <- x[2]
     n <- length(data)
@@ -119,13 +119,56 @@ negLog <- function(x, data){
 }
 
 negLogGradient <- function(x, data) {
+    negLogGC <<- negLogGC + 1
     mu1 <- sum(data) / length(data)
     c(-mu1, -(1 / length(data)) * sum((data - mu1)^2))
 }
-
-optim(par =c(0, 1), fn = negLog, method = "BFGS", data = data)
-optim(par =c(0, 1), fn = negLog, gr = negLogGradient, method = "BFGS", data = data)
-
-optim(par =c(0, 1), fn = negLog, method = "CG", data = data)
-optim(par =c(0, 1), fn = negLog, gr = negLogGradient, method = "CG", data = data)
 ```
+
+The reason why choosing the log-likelihood instead of the likelihood is because of numerical precision. Since we are calculatin small probabilities we don't want to multiply them and get even smaller numbers. When taking the log-likelihood we instead add them together. 
+
+
+```{r}
+
+negLogC <- 0
+optim(par =c(0, 1), fn = negLog, method = "BFGS", data = data)
+paste("The number of eval in negLog:",negLogC)
+```
+
+
+```{r}
+negLogC <- 0
+negLogGC <- 0
+optim(par =c(0, 1), fn = negLog, gr = negLogGradient, method = "BFGS", data = data)
+paste("The number of evals for gradient:",negLogGC)
+paste("The number of eval in negLog:",negLogC)
+
+```
+
+
+```{r}
+
+negLogC <- 0
+optim(par =c(0, 1), fn = negLog, method = "CG", data = data)
+paste("The number of evals in negLog:",negLogC)
+```
+
+
+```{r}
+negLogC <- 0 
+negLogGC <- 0 
+optim(par =c(0, 1), fn = negLog, gr = negLogGradient, method = "CG", data = data)
+paste("The number of evals for gradient:",negLogGC)
+paste("The number of evals in negLog:",negLogC)
+
+```
+
+
+## 1.4 
+
+All optimizations converged. The results can be seen above in the par-variable for each print out where the first value is $\mu$ and the second value is $\sigma^2$. 
+The true values are $\mu =$ `r mean(data)` , $\sigma^2 =$ `r var(data)`. The closet comparable result was generated from BFGS with the gradient specified, the mean is near exactly the same and the variance is a bit of but still the closest. It is also the one using least itterations, so clearly it seems like the superior technique in this example.
+
+
+
+
