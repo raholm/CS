@@ -1,10 +1,10 @@
 ---
 title: "Computational Statistics"
+subtitle: Lab 2
 author: "Emil K Svensson and Rasmus Holm"
 date: '`r Sys.Date()`'
 output:
-  pdf_document: default
-subtitle: Lab 2
+    pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -17,7 +17,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 mort <- read.csv2("../data/mortality_rate.csv")
-
 mort$LMR <- log(mort$Rate)
 
 n <- dim(mort)[1]
@@ -30,13 +29,12 @@ test <- mort[-id, ]
 ## 1.2
 
 ```{r}
-myMSE <- function(lambda, pars){
-    data  <- data.frame(pars$X, Y = pars$Y)
-    model <- loess(formula = Y ~ ., data = data, enp.target = lambda)
-
-    MSE <- mean((pars$Ytest - predict(model,pars$Xtest))^2)
+myMSE <- function(lambda, pars) {
     MSEcounter <<- MSEcounter + 1
-    return(MSE)
+
+    data  <- data.frame(pars$X, Y=pars$Y)
+    model <- loess(formula=Y ~ ., data=data, enp.target=lambda)
+    mean((pars$Ytest - predict(model, pars$Xtest))^2)
   }
 ```
 
@@ -46,12 +44,10 @@ myMSE <- function(lambda, pars){
 
 ```{r}
 MSEcounter <- 0
-mylambda <- seq(0.1,40, by = 0.1)
-mypars <- list(X = train$Day, Y = train$LMR, Xtest = test$Day, Ytest = test$LMR)
+mylambda <- seq(0.1, 40, by=0.1)
+mypars <- list(X=train$Day, Y=train$LMR, Xtest=test$Day, Ytest=test$LMR)
 
-
-MSES<- sapply(mylambda, FUN = myMSE, pars = mypars)
-
+MSES<- sapply(mylambda, FUN=myMSE, pars=mypars)
 ```
 
 ## 1.4
@@ -59,25 +55,24 @@ MSES<- sapply(mylambda, FUN = myMSE, pars = mypars)
 ```{r}
 library(ggplot2)
 
-ggplot() + geom_point(aes(x=mylambda, y = MSES))
+ggplot() + geom_point(aes(x=mylambda, y=MSES))
 mylambda[which.min(MSES)]
-paste("Number of evaluations",length(mylambda))
-
+paste("Number of evaluations", length(mylambda))
 ```
 
-The optimal value for lambda is 11.7 where the minimum MSE is achived. The number of evaluations required were for this tast 400, the number of lambdas that we tried.
+The optimal value for lambda is 11.7 where the minimum MSE is achieved. The number of evaluations required were for this task 400, the number of lambdas that we tried.
 
 ## 1.5
 
 
 ```{r}
 MSEcounter <- 0
-myopt <- optimize(myMSE, lower = 0.1, upper = 40, tol = 0.01, pars = mypars)
+myopt <- optimize(myMSE, lower=0.1, upper=40, tol=0.01, pars=mypars)
 
 paste("The number of evaluations:", MSEcounter)
 ```
 
-No, the optimize-function fails to find the minimum MSE and identifies it as 10.69 because of the small bump around lambda = 10 it think it has found the local minimum.
+No, the optimize-function fails to find the minimum MSE and identifies it as 10.69 because of the small bump around lambda=10 it think it has found the local minimum.
 
 The number of evaluations are lower then in the previous question though. (18 compared to 400)
 
@@ -86,12 +81,12 @@ The number of evaluations are lower then in the previous question though. (18 co
 ```{r}
 MSEcounter <- 0
 
-optim(par=list(lambda=35), fn = myMSE, method = "BFGS", pars=mypars)$par
+optim(par=list(lambda=35), fn=myMSE, method="BFGS", pars=mypars)$par
 
 paste("The number of evaluations:", MSEcounter)
 ```
 
-The optimal lambda here was as we specified lambda = 35, this is because the MSE around lambda 35 is a platue and therefor the gradient (first derviative) becomes zero and the algorithm stops since there is no change.
+The optimal lambda here was as we specified lambda=35, this is because the MSE around lambda 35 is a plateau and therefor the gradient (first derivative) becomes zero and the algorithm stops since there is no change.
 
 
 # Question 2
@@ -110,65 +105,57 @@ Derv
 
 ```{r}
 negLog <- function(x, data){
-    negLogC <<- negLogC + 1 
+    negLogC <<- negLogC + 1
+
     mu <- x[1]
     sigma <- x[2]
     n <- length(data)
-    loglik <- (n / 2) * log(sigma^2) + (n / 2) * log(2 * pi) + (1 / (2 * sigma^2)) * sum((data - mu)^2)
-    return(loglik)
+    (n / 2) * log(sigma^2) + (n / 2) * log(2 * pi) + (1 / (2 * sigma^2)) * sum((data - mu)^2)
 }
 
 negLogGradient <- function(x, data) {
     negLogGC <<- negLogGC + 1
+
     mu1 <- sum(data) / length(data)
     c(-mu1, -(1 / length(data)) * sum((data - mu1)^2))
 }
 ```
 
-The reason why choosing the log-likelihood instead of the likelihood is because of numerical precision. Since we are calculatin small probabilities we don't want to multiply them and get even smaller numbers. When taking the log-likelihood we instead add them together. 
-
+The reason why choosing the log-likelihood instead of the likelihood is because of numerical precision. Since we are calculating small probabilities we don't want to multiply them and get even smaller numbers. When taking the log-likelihood we instead add them together.
 
 ```{r}
-
 negLogC <- 0
-optim(par =c(0, 1), fn = negLog, method = "BFGS", data = data)
-paste("The number of eval in negLog:",negLogC)
+optim(par =c(0, 1), fn=negLog, method="BFGS", data=data)
+paste("The number of evaluations of the log-likelihood:", negLogC)
 ```
 
 
 ```{r}
 negLogC <- 0
 negLogGC <- 0
-optim(par =c(0, 1), fn = negLog, gr = negLogGradient, method = "BFGS", data = data)
-paste("The number of evals for gradient:",negLogGC)
-paste("The number of eval in negLog:",negLogC)
-
+optim(par =c(0, 1), fn=negLog, gr=negLogGradient, method="BFGS", data=data)
+paste("The number of evaluations of the gradient:", negLogGC)
+paste("The number of evaluations of the log-likelihood:", negLogC)
 ```
 
 
 ```{r}
-
 negLogC <- 0
-optim(par =c(0, 1), fn = negLog, method = "CG", data = data)
-paste("The number of evals in negLog:",negLogC)
+optim(par =c(0, 1), fn=negLog, method="CG", data=data)
+paste("The number of evaluations of the log-likelihood:", negLogC)
 ```
 
 
 ```{r}
-negLogC <- 0 
-negLogGC <- 0 
-optim(par =c(0, 1), fn = negLog, gr = negLogGradient, method = "CG", data = data)
-paste("The number of evals for gradient:",negLogGC)
-paste("The number of evals in negLog:",negLogC)
-
+negLogC <- 0
+negLogGC <- 0
+optim(par =c(0, 1), fn=negLog, gr=negLogGradient, method="CG", data=data)
+paste("The number of evaluations of the gradient:", negLogGC)
+paste("The number of evaluations of the log-likelihood:", negLogC)
 ```
 
 
-## 1.4 
+## 1.4
 
-All optimizations converged. The results can be seen above in the par-variable for each print out where the first value is $\mu$ and the second value is $\sigma^2$. 
-The true values are $\mu =$ `r mean(data)` , $\sigma^2 =$ `r var(data)`. The closet comparable result was generated from BFGS with the gradient specified, the mean is near exactly the same and the variance is a bit of but still the closest. It is also the one using least itterations, so clearly it seems like the superior technique in this example.
-
-
-
-
+All optimizations converged. The results can be seen above in the par-variable for each print out where the first value is $\mu$ and the second value is $\sigma^2$.
+The true values are $\mu =$ `r mean(data)`, $\sigma^2 =$ `r var(data)`. The closet comparable result was generated from BFGS with the gradient specified, the mean is near exactly the same and the variance is a bit of but still the closest. It is also the one using least iterations, so clearly it seems like the superior technique in this example.
