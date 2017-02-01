@@ -134,7 +134,7 @@ neg_llik <- function(pars, data){
     (n / 2) * log(sigma^2) + (n / 2) * log(2 * pi) + (1 / (2 * sigma^2)) * sum((data - mu)^2)
 }
 
-neg_llikGradient <- function(pars, data) {
+neg_llikgrad <- function(pars, data) {
     neg_llikgrad_counter <<- neg_llikgrad_counter + 1
 
     n <- length(data)
@@ -155,7 +155,7 @@ paste("The number of evaluations of the log-likelihood:", neg_llik_counter)
 ```{r}
 neg_llik_counter <- 0
 neg_llikgrad_counter <- 0
-optim(par =c(0, 1), fn=neg_llik, gr=neg_llikGradient, method="BFGS", data=data)
+optim(par =c(0, 1), fn=neg_llik, gr=neg_llikgrad, method="BFGS", data=data)
 paste("The number of evaluations of the log-likelihood:", neg_llik_counter)
 paste("The number of evaluations of the gradient:", neg_llikgrad_counter)
 ```
@@ -169,7 +169,7 @@ paste("The number of evaluations of the log-likelihood:", neg_llik_counter)
 ```{r}
 neg_llik_counter <- 0
 neg_llikgrad_counter <- 0
-optim(par =c(0, 1), fn=neg_llik, gr=neg_llikGradient, method="CG", data=data)
+optim(par =c(0, 1), fn=neg_llik, gr=neg_llikgrad, method="CG", data=data)
 paste("The number of evaluations of the gradient:", neg_llikgrad_counter)
 paste("The number of evaluations of the log-likelihood:", neg_llik_counter)
 ```
