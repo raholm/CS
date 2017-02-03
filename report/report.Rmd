@@ -126,13 +126,14 @@ b <- t(X) %*% Y
 writeLines(try(solve(A) %*% b, silent=TRUE)[1])
 ```
 
-The computation can not be preformed. Without scaling the data the A matrix will contain relatively large values which cannot be represented as accurately as smaller numbers in floating point. Gaussian elimination used in solve uses a lot of subtractions and since the values are less accurately represented it can happen that numbers become close to zero which is interpreted as 0 by the solve function and in this case it results in a singular matrix, i.e. non-invertable matrix.
+The computation can not be preformed. Taking the determinant $\text{det}(A) =$ `r det(A)` we see that it is not invertible according to R which indicate that the features are correlated to each other.
+
 
 ```{r}
 paste("kappa off the unscaled A:", kappa(A))
 ```
 
-A large kappa value is a bad sign and can mean ill-conditioning which in this case gives a bound on how inaccurate the solution $x$ will be. Basically small errors in $b$ may cause large errors in $x$. However, it does not explain why the matrix turned out to be singular in the solve function.
+A large kappa value is a bad sign, can mean ill-condition, and in this case it gives a bound on how inaccurate the solution $x$ will be. Basically small errors in $b$ may cause large errors in $x$. However, it does not explain why the matrix turned out to be singular in the solve function.
 
 ## Scaled
 
@@ -150,12 +151,28 @@ bs <- t(Xs) %*% Ys
 head(solve(As) %*% bs)
 ```
 
-In this case it is possible to find parameters since we scaled the data and the matrix $A$ did not turn out to be singular. This is because the solve function works with smaller numbers and is therefore more accurate.
+In this case it is possible to find parameters since we scaled the data and the matrix $A$ did not turn out to be singular.
+
+What is interesting is that the determinant is 0 for both the scaled and non-scaled $A$ matrices but it is possible to invert the scaled matrix. We think this has to do with the floating point system and accuracy, the working with smaller numbers in the scaled matrix do prevent instability in the calculations while the non-scaled matrix suffers from large rounding errors causing the instability.
 
 ```{r}
 paste("kappa off the scaled A:", kappa(As))
 ```
 
-A smaller kappa than previously which means the $x$ will be more accurate.
+A smaller kappa than previously which indicate that the linear system is more stable with scaled data but still a very large number that indicates that the system is volatile.
 
-\textbf{TODO: STILL CONFUSED ABOUT HOW OUR RESULTS ARE RELATED TO THE KAPPA VALUES}
+```{r, echo=FALSE, eval=FALSE}
+options(digits=4)
+
+det(t(A) %*% A)
+Aeigen <- eigen(t(A) %*% A, only.values=TRUE)$values
+
+det(t(As) %*% As)
+Aseigen <- eigen(t(As) %*% As, only.values=TRUE)$values
+
+kappa(t(A) %*% A)
+max(abs(Aeigen)) / min(abs(Aeigen))
+
+kappa(t(As) %*% As)
+max(abs(Aseigen)) / min(abs(Aseigen))
+```
