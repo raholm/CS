@@ -1,0 +1,12 @@
+---
+title: "Computational Statistics"
+subtitle: Lab 3
+author: "Emil K Svensson and Rasmus Holm"
+date: '`r Sys.Date()`'
+output:
+    pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
