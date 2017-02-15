@@ -12,40 +12,32 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-# Question 1 
+# Question 1
 
-## 1.1 
+## 1.1
 
 ```{r}
-pop <- read.csv2("../data/population.csv",encoding = "latin1")
+pop <- read.csv2("../data/population.csv", encoding = "latin1")
 ```
 
-## 1.2 
+## 1.2
 
 ```{r}
-
 cityUnif <- function(data){
-data$prob <- data$Population / sum(data$Population)
-data$cumprob <- cumsum(data$prob)
-
-
-return(which.min(data$cumprob < runif(1)))
+    data$prob <- data$Population / sum(data$Population)
+    data$cumprob <- cumsum(data$prob)
+    return(which.min(data$cumprob < runif(1)))
 }
-
-
-
 ```
 
-# 1.3 
+# 1.3
 
 ```{r}
 rmpop <- pop
 
 set.seed(123456)
-while(nrow(rmpop) > 20){ 
-
+while(nrow(rmpop) > 20){
   rmpop <- rmpop[-cityUnif(rmpop),]
-  
 }
 ```
 
@@ -56,7 +48,7 @@ while(nrow(rmpop) > 20){
 print(paste(as.character(rmpop$Municipality),":",rmpop$Population))
 ```
 
-In general small cities were selected 
+In general small cities were selected
 
 ## 1.5
 
@@ -73,116 +65,115 @@ It selects cities with low population, it seems resonable given the large number
 
 # Question 2
 
-## 2.1 
+## 2.1
 
 ```{r}
-
-
-
 Batman <- function(){
-rng <- runif(1)
+    rng <- runif(1)
 
-if( rng > 0.5) {
-   return( -log(2-2*runif(1)) )
-} else {
-  return( log(2*runif(1)) )
-  }
+    if( rng > 0.5) {
+        return( -log(2-2*runif(1)) )
+    } else {
+        return( log(2*runif(1)) )
+    }
 }
-
-
 
 invLap <- function(){
-rng <- runif(1)
+    rng <- runif(1)
 
-if( rng > 0.5) {
-   return( -log(2-2*rng) )
-} else {
-  return( log(2*rng )) 
-  } 
+    if(rng > 0.5) {
+        return(-log(2 - 2 * rng) )
+    } else {
+        return(log(2 * rng))
+    }
 }
-
 ```
 
 
 ```{r}
-plotdata <- sapply(1:10000,FUN = function(x) invLap() )
+plotdata <- sapply(1:10000,FUN = function(x) invLap())
 
-
-hist(plotdata, prob = TRUE, ylim = c(0,0.45) , xlim = c(-6,6) , xlab = "x", main = "Laplace distribution ~(0,1)", sub = "  Inverse CDF method", breaks = 20)
-lines( density(plotdata), col = "red", lwd = 2)
+hist(plotdata, prob = TRUE, ylim = c(0,0.5), xlim = c(-6,6),
+     xlab = "x", main = "Laplace distribution ~(0,1)",
+     sub = "  Inverse CDF method", breaks = 20)
+lines(density(plotdata), col = "red", lwd = 2)
 ```
 
 
-## 2.2 
+## 2.2
 
 ```{r}
+DE01 <- function(x) {
+    (1 / 2) * exp(-abs(x))
+}
 
 ar <- function(c) {
-   
   rej <- 0
-  
-  DE <- function(x){
-    (1/2)*exp(-abs(x))
-  }
-  
-     generated <- FALSE 
-     x <- c()
-     
+
+  generated <- FALSE
+  x <- c()
+
   while(!generated){
-    y <- invLap() # Y ~ f_y 
-    u <- runif(1) # U(0,1)
-    
-    fx <- dnorm(y, mean = 0, sd = 1) # fx(y)
-    fy <- DE(y) #f_y
-    
-    if(u < fx/(c*fy)){
-      return(c(y,rej))  #alt. set x <- y and generated = TRUE, to end the loop
-    }
-    rej <- rej + 1
+      y <- invLap() # Y ~ f_y
+      u <- runif(1) # U(0,1)
+
+      fx <- dnorm(y, mean = 0, sd = 1) # fx(y)
+      fy <- DE01(y) #f_y
+
+      if(u < fx / (c * fy)){
+          return(c(y, rej))  #alt. set x <- y and generated = TRUE, to end the loop
+      }
+
+      rej <- rej + 1
   }
-     
 }
-   
 ```
 
-Here is our function. 
+Here is our function.
 
-### Choosing the appropriate c 
+### Choosing the appropriate c
 
 ```{r}
+plot(x = 0, y = 0, col ="white", xlim = c(-5,5),
+     ylim = c(-0.01, 7), xlab = "x",
+     ylab = "Density" )
+
+lap <- sapply(1:10000,FUN = function(x) invLap())
+
+fx <- sapply(lap, FUN=function(x) dnorm(x, mean=0, sd=1))
+fy <- sapply(lap, FUN=function(x) DE01(x))
+
+lines(density(fx), col="red", lwd=2)
+lines(density(fy), col="blue", lwd=2)
+
+set.seed(123456)
+n <- 1000000
+lap <- sapply(1:n,FUN = function(x) invLap())
+nor <- rnorm(n, 0, 1)
+
+plot(x = 0, y = 0, col ="white", xlim = c(-6,6),
+     ylim = c(-0.01, 0.5), xlab = "x",
+     ylab = "Density" )
+lines(density(lap), col = "red", lwd = 2)
+lines(density(nor), col = "blue", lwd = 2)
+```
+
+```{r}
+ARsim <- data.frame(rn = 1, rej = 1)
+c <- 1.32
+
+
+for(i in 1:2000){
+  ARsim[i,] <- ar(c=c)
+}
 
 plot(x = 0, y = 0, col ="white", xlim = c(-5,5), ylim = c(-0.01,0.5), xlab = "x",
      ylab = "Density" )
+lines(density(ARsim$rn), col="red", lwd=2)
+lines(density(nor), col="blue", lwd=2)
 
-lap <- sapply(1:10000,FUN = function(x) invLap() )
-lines( density(lap), col = "red", lwd = 2)
+(c - 1) / c
+sum(ARsim$rej) / (sum(ARsim$rej) + 2000)
 
-nor <- rnorm(10000,0,1)
-
-lines( density(nor), col = "blue", lwd = 2)
-
-```
-
-
-
-
-```{r}
-
-ARsim <- data.frame(rn = 1, rej = 1)
-for(i in 1:2000){
-  
-  ARsim[i,] <- ar(c = 1.1)
-  
-}
-mean(ARsim$rej)
-mean(ARsim$rej /(ARsim$rej + 1))
-
-sum(ARsim$rej)/(sum(ARsim$rej)+2000)
-
-max(ARsim$rej)
 hist(ARsim$rn)
-
 ```
-
-
-§
