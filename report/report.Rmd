@@ -56,7 +56,7 @@ while(nrow(rmpop) > 20){
 print(paste(as.character(rmpop$Municipality),":",rmpop$Population))
 ```
 
-In general small cities were selected 
+As seen in the output above, we in general select cities with small populations. 
 
 ## 1.5
 
@@ -77,20 +77,6 @@ It selects cities with low population, it seems resonable given the large number
 
 ```{r}
 
-
-
-Batman <- function(){
-rng <- runif(1)
-
-if( rng > 0.5) {
-   return( -log(2-2*runif(1)) )
-} else {
-  return( log(2*runif(1)) )
-  }
-}
-
-
-
 invLap <- function(){
 rng <- runif(1)
 
@@ -108,10 +94,11 @@ if( rng > 0.5) {
 plotdata <- sapply(1:10000,FUN = function(x) invLap() )
 
 
-hist(plotdata, prob = TRUE, ylim = c(0,0.45) , xlim = c(-6,6) , xlab = "x", main = "Laplace distribution ~(0,1)", sub = "  Inverse CDF method", breaks = 20)
+hist(plotdata, prob = TRUE, ylim = c(0,0.45) , xlim = c(-6,6) , xlab = "x", main = "Laplace distribution ~ (0,1)", sub = "  Inverse CDF method", breaks = 50)
 lines( density(plotdata), col = "red", lwd = 2)
 ```
 
+Yes, the histogram and the density-curve we included seems resonable compared to the normal shape of a Laplace-distrubution.
 
 ## 2.2 
 
@@ -163,15 +150,31 @@ lines( density(nor), col = "blue", lwd = 2)
 
 ```
 
+Our approach for approximating c was to try to make a laplace-curve that would as much as possible cover the whole density-curve for the normaldistribution. 
+
+For x > 0 since it is symmetric
+
+$cf_y(x) - f_x(x) = 0$
+
+$c/2 e^{-x} - 1/(\sqrt{2\pi}) e^{-x^2/2} = 0$
+
+$log(c/2) - x - log(1/(\sqrt{2\pi})) + x^2/2 = 0$
 
 
+
+after some equation-solving we come to the soloution 
+
+$c = 1.315$
+
+
+### Simulation and comparison
 
 ```{r}
 
 ARsim <- data.frame(rn = 1, rej = 1)
 for(i in 1:2000){
   
-  ARsim[i,] <- ar(c = 1.1)
+  ARsim[i,] <- ar(c = 1.315)
   
 }
 mean(ARsim$rej)
@@ -180,9 +183,19 @@ mean(ARsim$rej /(ARsim$rej + 1))
 sum(ARsim$rej)/(sum(ARsim$rej)+2000)
 
 max(ARsim$rej)
-hist(ARsim$rn)
+
+par(mfrow = c(1,2))
+
+hist(ARsim$rn, main = "Simulated Normal", xlab = "x",
+     col = "orange",  breaks = 30)
+
+hist(rnorm(2000,0,1), main = "Normal drawn from rnorm", xlab = "x", 
+     col = "lightgreen", breaks = 30 )
+par(mfrow = c(1,1))
 
 ```
 
+The simulated one is a bit more rough around the edges and more narrow in the center in comparison to the histogram drawn from the rnorm. 
 
-§
+The average rejection rate is $\frac{n(M-1)}{nM}$ since the expected number of itterations before a accepted value is $M$ so intutively the number of rejections is $M-1$. n here is only the number of values that we use, but these cancle eachother out so they are not neccesary but we left them here for clarity. 
+
