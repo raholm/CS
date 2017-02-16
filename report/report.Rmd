@@ -48,20 +48,31 @@ while(nrow(rmpop) > 20){
 print(paste(as.character(rmpop$Municipality),":",rmpop$Population))
 ```
 
-As seen in the output above, we in general select cities with small populations.
+As seen in the output above, we in general select cities with small populations. This is logical since the removal of cities is based on the population, i.e. highly populated cities are more likely to be removed, thus it is more likely to leave smaller cities in the output.
 
 ## 1.5
 
 ```{r}
-par(mfrow = c(1,2))
+library(ggplot2)
 
-hist(pop$Population, main = "Histogram of all cities", xlab = "population", las = 1, breaks = 20)
-hist(rmpop$Population, main = "Histogram of selected cities", xlab = "population", las = 1)
-par(mfrow = c(1,1))
+true_pop <- data.frame(pop=pop$Population)
+picked_pop <- data.frame(pop=rmpop$Population)
+
+true_pop$data <- "True"
+picked_pop$data <- "Selected"
+
+plot_data <- rbind(true_pop, picked_pop)
+
+ggplot(plot_data, aes(pop, fill=data)) +
+    geom_histogram(color="black", binwidth=10000) +
+    facet_grid(data ~ ., scales="free_y") +
+    xlab("Population") + ylab("Count") +
+    labs(fill="Data")
 ```
 
-It selects cities with low population, it seems resonable given the large number of cities with small populations.
+In the histograms above the width of a staple is 10000 and we can see that in the data set most cities are $\leq 50000$ in population and the cities we selected are all $\leq 20000$ in size. This is as described above expected but we can also see that it is expected in terms of the number of cities in that range.
 
+\newpage
 
 # Question 2
 
@@ -89,7 +100,7 @@ hist(plotdata, prob = TRUE, ylim = c(0,0.5), xlim = c(-6,6),
 lines(density(plotdata), col = "red", lwd = 2)
 ```
 
-Yes, the histogram and the density-curve we included seems resonable compared to the normal shape of a Laplace distribution.
+Yes, the histogram and the density-curve we included seems reasonable compared to the normal shape of a Laplace distribution.
 
 ## 2.2
 
@@ -147,7 +158,7 @@ $c/2 e^{-x} - 1/(\sqrt{2\pi}) e^{-x^2/2} = 0$
 
 $log(c/2) - x - log(1/(\sqrt{2\pi})) + x^2/2 = 0$
 
-after some equation-solving we come to the soloution
+after some equation-solving we come to the solution
 
 $c = 1.315$
 
@@ -189,4 +200,4 @@ options(digits=3)
 
 The simulated one is a bit more rough around the edges and more narrow in the center in comparison to the histogram drawn from the rnorm.
 
-The expected rejection rate is $\frac{n(M - 1)}{nM}$ since the expected number of iterations before a accepted value is $M$ so intuitively the number of rejections is $M - 1$. n here is only the number of values that we use, but these cancle eachother out so they are not neccesary but we left them here for clarity. The theoretical rejection rate would be `r (c - 1) / c` and what we empirically found was `r sum(ARsim$rej) / (sum(ARsim$rej) + 2000)` which is reasonbly close.
+The expected rejection rate is $\frac{n(M - 1)}{nM}$ since the expected number of iterations before a accepted value is $M$ so intuitively the number of rejections is $M - 1$. n here is only the number of values that we use, but these cancel each other out so they are not necessary but we left them here for clarity. The theoretical rejection rate would be `r (c - 1) / c` and what we empirically found was `r sum(ARsim$rej) / (sum(ARsim$rej) + 2000)` which is reasonably close.
