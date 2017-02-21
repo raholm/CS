@@ -87,18 +87,18 @@ par(oldpar)
 ```
 
 
-## Geldman rubin 
+## Geldman rubin
 ```{r}
 Geldman<-function(x){
   k <- nrow(x)
   n <- ncol(x)
-  
-  B <- (n / (k - 1)) * sum((rowMeans(x) - mean(x))^2)   
-  
+
+  B <- (n / (k - 1)) * sum((rowMeans(x) - mean(x))^2)
+
   W <- sum((x - rowMeans(x))^2) / (k * (n - 1))
 
   VarV <- ((n - 1) / n) * W + B / n
-  
+
   sqrtR <- sqrt(VarV / W)
   sqrtR
 }
@@ -111,7 +111,7 @@ GeldmanRes
 ```
 
 
-# Question 2 
+# Question 2
 
 ```{r}
 load("../data/chemical.RData")
@@ -124,6 +124,3 @@ hist(chem$Y)
 
 hist(rbeta(50,3,2))
 ```
-
-
-
