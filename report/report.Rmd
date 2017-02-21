@@ -33,11 +33,17 @@ cityUnif <- function(data){
 # 1.3
 
 ```{r}
+n <- 20
+
 rmpop <- pop
+selpop <-  data.frame()
 
 set.seed(123456)
-while(nrow(rmpop) > 20){
-    rmpop <- rmpop[-cityUnif(rmpop),]
+
+for (i in 1:n) {
+    popidx <- cityUnif(rmpop)
+    selpop <- rbind(selpop, rmpop[popidx,])
+    rmpop <- rmpop[-popidx,]
 }
 ```
 
@@ -45,7 +51,7 @@ while(nrow(rmpop) > 20){
 ## 1.4
 
 ```{r}
-print(paste(as.character(rmpop$Municipality),":",rmpop$Population))
+print(paste(as.character(selpop$Municipality),":",selpop$Population))
 ```
 
 As seen in the output above, we in general select cities with small populations. This is logical since the removal of cities is based on the population, i.e. highly populated cities are more likely to be removed, thus it is more likely to leave smaller cities in the output.
@@ -56,7 +62,7 @@ As seen in the output above, we in general select cities with small populations.
 library(ggplot2)
 
 true_pop <- data.frame(pop=pop$Population)
-picked_pop <- data.frame(pop=rmpop$Population)
+picked_pop <- data.frame(pop=selpop$Population)
 
 true_pop$data <- "True"
 picked_pop$data <- "Selected"
