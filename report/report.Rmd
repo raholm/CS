@@ -54,7 +54,7 @@ for (i in 1:n) {
 print(paste(as.character(selpop$Municipality),":",selpop$Population))
 ```
 
-As seen in the output above, we in general select cities with small populations. This is logical since the removal of cities is based on the population, i.e. highly populated cities are more likely to be removed, thus it is more likely to leave smaller cities in the output.
+As seen in the output above, we in general select cities with large populations. This is logical since the addition of cities is based on the population, i.e. highly populated cities are more likely to be added, thus it is less likely to add smaller cities in the output.
 
 ## 1.5
 
