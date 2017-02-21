@@ -103,11 +103,11 @@ Geldman<-function(x){
   sqrtR
 }
 
-resultMatrix <- do.call(rbind, lapply(1:10, FUN = function(x) metropolis_hastings(X0 = x,iters = iters, funcs = chisquarefuncs) ))
+resultMatrix <- do.call(rbind, lapply(1:10, FUN = function(x)
+    metropolis_hastings(X0 = x, iters = iters, funcs = chisquarefuncs)))
 
 GeldmanRes <- Geldman(resultMatrix)
 GeldmanRes
-
 ```
 
 
@@ -124,3 +124,14 @@ hist(chem$Y)
 
 hist(rbeta(50,3,2))
 ```
+
+\begin{align*}
+p(\mu) &= \frac{1}{\sqrt{(0.08 \pi)^n}} \exp \left(- \frac{\sum_{i=1}^{n - 1} (x - \mu_{i})^2}{0.08} \right) \\
+p(y | \mu) &= \frac{1}{\sqrt{(2 \pi)^{n} | \Sigma |}} \exp \left( -\frac{1}{2} (x - \mu) \Sigma^{-1} (x - \mu) \right)
+\end{align*}
+
+where $\Sigma = 0.2 I$.
+
+\begin{align*}
+p(\mu | y) \propto p(y | \mu) p(\mu)
+\end{align*}
