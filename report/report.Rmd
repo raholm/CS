@@ -185,7 +185,7 @@ This gives us that
 
 \begin{align*}
 c &= \frac{2}{\sqrt{2 \pi}} e^{-\frac{1^2}{2} + 1} \\
-  &= \frac{2}{\sqrt{2 \pi}} \sqrt(e) \\
+  &= \frac{2}{\sqrt{2 \pi}} \sqrt{e} \\
   & \approx 1.315
 \end{align*}
 
