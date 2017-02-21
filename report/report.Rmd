@@ -125,4 +125,21 @@ hist(rbeta(50,3,2))
 ```
 
 
+## 2.2 
+
+```{r}
+
+
+
+mu <- c(1)
+
+nmu <- 10 
+for (i in 1:nmu){ 
+  mu <- c(mu, rnorm(1,mean= mu[i] , sd = 0.2) )
+}  
+print(mu)
+
+```
+
+
 
