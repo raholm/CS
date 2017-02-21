@@ -85,3 +85,45 @@ hist(samples2, main="Sampled (chi-squared)")
 ```{r, echo=FALSE}
 par(oldpar)
 ```
+
+
+## Geldman rubin 
+```{r}
+Geldman<-function(x){
+  k <- nrow(x)
+  n <- ncol(x)
+  
+  B <- (n / (k - 1)) * sum((rowMeans(x) - mean(x))^2)   
+  
+  W <- sum((x - rowMeans(x))^2) / (k * (n - 1))
+
+  VarV <- ((n - 1) / n) * W + B / n
+  
+  sqrtR <- sqrt(VarV / W)
+  sqrtR
+}
+
+resultMatrix <- do.call(rbind, lapply(1:10, FUN = function(x) metropolis_hastings(X0 = x,iters = iters, funcs = chisquarefuncs) ))
+
+GeldmanRes <- Geldman(resultMatrix)
+GeldmanRes
+
+```
+
+
+# Question 2 
+
+```{r}
+load("../data/chemical.RData")
+
+chem <- data.frame(X = X , Y = Y)
+
+
+plot(chem)
+hist(chem$Y)
+
+hist(rbeta(50,3,2))
+```
+
+
+
