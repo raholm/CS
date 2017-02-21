@@ -156,17 +156,38 @@ lines(density(nor), col = "blue", lwd = 2)
 
 Our approach for approximating c was to try to make a laplace-curve that would as much as possible cover the whole density-curve for the normal distribution.
 
-For x > 0 since it is symmetric
 
-$cf_y(x) - f_x(x) = 0$
+We know that
 
-$c/2 e^{-x} - 1/(\sqrt{2\pi}) e^{-x^2/2} = 0$
+\begin{align*}
+f_y(x) &= \frac{1}{2} e^{-x} \\
+f_x(x) &= \frac{1}{\sqrt{2 \pi}} e^{-\frac{x^2}{2}}.
+\end{align*}
 
-$log(c/2) - x - log(1/(\sqrt{2\pi})) + x^2/2 = 0$
 
-after some equation-solving we come to the solution
+For $x \geq 0$ since it is symmetric
 
-$c = 1.315$
+\begin{align*}
+c f_y(x) \geq f_x(x) \\
+c \geq \frac{2}{\sqrt{2 \pi}} e^{-\frac{x^2}{2} + x}.
+\end{align*}
+
+To get the minimum $c$ required we have to maximize $e^{-\frac{x^2}{2} + x}$ which is the same as to maximize
+$-\frac{x^2}{2} + x$.
+
+\begin{align*}
+g(x) &= -\frac{x^2}{2} + x \\
+g^{\prime}(x) &= 1 - x \\
+1 - x &= 0 \Rightarrow x = 1
+\end{align*}
+
+This gives us that
+
+\begin{align*}
+c &= \frac{2}{\sqrt{2 \pi}} e^{-\frac{1^2}{2} + 1} \\
+  &= \frac{2}{\sqrt{2 \pi}} \sqrt(e) \\
+  & \approx 1.315
+\end{align*}
 
 ### Simulation and comparison
 
