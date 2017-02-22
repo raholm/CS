@@ -158,3 +158,61 @@ p(\mu_1 | \mu_{-1}, y) &\propto \exp \left( -\frac{1}{\sigma^2} (\mu_1 - (y_1 + 
 p(\mu_i | \mu_{-i}, y) &\propto \exp \left( -\frac{3}{2 \sigma^2} (\mu_i - (y_i + \mu_{i-1} + \mu_{i+1}) / 3)^2 \right) \\
 p(\mu_n | \mu_{-n}, y) &\propto \exp \left( -\frac{1}{\sigma^2} (\mu_n - (y_n + \mu_{n-1}) / 2)^2 \right) \\
 \end{align*}
+
+## 2.4 
+
+```{r}
+
+posterior <- function(y,meanS,index,sigmasq){ 
+  
+  if (index == 1){
+   return( rnorm(1, mean = (y[index] + meanS[index + 1])/2, sd = sqrt(sigmasq))  ) 
+  }  
+  
+  if (index == length(meanS)){
+   return( rnorm(1, mean = (y[index] + meanS[index - 1])/2, sd = sqrt(sigmasq)) *posterior(y,meanS,index- 1, sigmasq) )
+  } 
+  
+  #If not any of above statements
+  return( rnorm(1, mean = (y[index] + meanS[index - 1] + meanS[index + 1])/3, 
+                sd = sqrt(3/(2*sigmasq)) ) * posterior(y,meanS, index-1,sigmasq) )
+  
+}
+
+
+
+gibbs <- function(data, tmax){
+  d <- length(data)
+  t <- 0
+  xo <- rep(0, times = d )
+  
+  result <- matrix(0,nrow = tmax, ncol = d) 
+  
+  for (i in 1:tmax){
+    for (j in 1:d){
+      
+      result[i,j] <- posterior(data, index = j, mean = xo, sigmasq = 0.2)
+      xo <- result[(i-1):(i+1),j]
+      
+    }
+    
+  }
+return(result)  
+  
+}
+
+```
+
+
+
+```{r}
+mu <- gibbs(data = chem$Y, tmax = 1000)
+
+
+plot(chem)
+par(new = TRUE)
+plot()
+
+```
+
+
