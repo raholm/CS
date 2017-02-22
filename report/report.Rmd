@@ -127,35 +127,34 @@ hist(rbeta(50,3,2))
 
 
 ## 2.2
+We have
 
 \begin{align*}
 p(\mu) &= p(\mu_1) p(\mu_2 | \mu_1) \cdots p(\mu_n | \mu_{n-1}) \\
-       &= \frac{1}{\sqrt{(2 \pi \sigma^2)^{n-1}}} \exp \left( - \frac{1}{2 \sigma^2} \sum_{i=2}^{n} (\mu_i - \mu_{i-1})^2  \right) \\
+       &= \frac{1}{\sqrt{(2 \pi \sigma^2)^{n-1}}} \exp \left( - \frac{1}{2 \sigma^2} \sum_{i=2}^{n} (\mu_i - \mu_{i-1})^2  \right), \\
 p(y | \mu) &= p(y_1 | \mu_1) p(y_2 | \mu_2) \cdots p(y_n | \mu_n) \\
-           &= \frac{1}{\sqrt{(2 \pi \sigma^2)^{n}}} \exp \left( - \frac{1}{2 \sigma^2} \sum_{i=1}^{n} (y_i - \mu_i)^2 \right)
+           &= \frac{1}{\sqrt{(2 \pi \sigma^2)^{n}}} \exp \left( - \frac{1}{2 \sigma^2} \sum_{i=1}^{n} (y_i - \mu_i)^2 \right).
 \end{align*}
 
 ## 2.3
+The prosterior is then
 
 \begin{align*}
 p(\mu | y) &\propto p(y | \mu) p(\mu) \\
-           &\propto \exp \left( - \frac{1}{2 \sigma^2} \left( \sum_{i=1}^{n} (y_i - \mu_i)^2 + \sum_{i=2}^{n} (\mu_i - \mu_{i-1})^2 \right) \right)
+           &\propto \exp \left( - \frac{1}{2 \sigma^2} \left( \sum_{i=1}^{n} (y_i - \mu_i)^2 + \sum_{i=2}^{n} (\mu_i - \mu_{i-1})^2 \right) \right) \\
+           &\propto \exp \left(
+           -\frac{2}{2 \sigma^2} (\mu_1 - (y_1 + \mu_{2}) / 2)^2
+           -\frac{3}{2 \sigma^2} \sum_{j=2}^{i} (\mu_j - (y_j + \mu_{j-1} + \mu_{j+1}) / 3)^2
+           -\frac{2}{2 \sigma^2} (\mu_n - (y_n + \mu_{n-1}) / 2)^2
+           \right).
 \end{align*}
 
-This
+This gives us
 
 \begin{align*}
-p(\mu_1 | \mu_{-1}, y) &\propto \exp \left( -\frac{2}{2 \sigma^2} (\mu_1 - (y_1 + \mu_{2}) / 2)^2 \right) \\
-p(\mu_i | \mu_{-i}, y) &\propto p(\mu_1 | \mu_{-1}, y) \exp \left( -\frac{3}{2 \sigma^2} \sum_{j=2}^{i} (\mu_j - (y_j + \mu_{j-1} + \mu_{j+1}) / 3)^2 \right) \\
-p(\mu_n | \mu_{-n}, y) &\propto p(\mu_{n-1} | \mu_{-n-1}, y) \exp \left( -\frac{2}{2 \sigma^2} (\mu_n - (y_n + \mu_{n-1}) / 2)^2 \right) \\
-\end{align*}
-
-Alternatively this
-
-\begin{align*}
-p(\mu_1 | \mu_{-1}, y) &\propto \exp \left( -\frac{2}{2 \sigma^2} (\mu_1 - (y_1 + \mu_{2}) / 2)^2 \right) \\
-p(\mu_i | \mu_{-i}, y) &\propto \exp \left( -\frac{3}{2 \sigma^2} (\mu_i - (y_i + \mu_{i-1} + \mu_{i+1}) / 3)^2 \right) \\
-p(\mu_n | \mu_{-n}, y) &\propto \exp \left( -\frac{2}{2 \sigma^2} (\mu_n - (y_n + \mu_{n-1}) / 2)^2 \right) \\
+p(\mu_1 | \mu_{-1}, y) &\propto \exp \left( -\frac{2}{2 \sigma^2} (\mu_1 - (y_1 + \mu_{2}) / 2)^2 \right), \\
+p(\mu_i | \mu_{-i}, y) &\propto \exp \left( -\frac{3}{2 \sigma^2} (\mu_i - (y_i + \mu_{i-1} + \mu_{i+1}) / 3)^2 \right), \\
+p(\mu_n | \mu_{-n}, y) &\propto \exp \left( -\frac{2}{2 \sigma^2} (\mu_n - (y_n + \mu_{n-1}) / 2)^2 \right).
 \end{align*}
 
 ## 2.4
@@ -172,13 +171,11 @@ posterior <- function(data, mus, index, sigmasq){
         return(rnorm(1,
                      mean = (data[index] + mus[index - 1]) / 2,
                      sd = sqrt(sigmasq / 2)))
-               ## * posterior(data, mus, index- 1, sigmasq))
     }
 
     return(rnorm(1,
                  mean = (data[index] + mus[index - 1] + mus[index + 1]) / 3,
                  sd = sqrt(sigmasq / 3)))
-           ## * posterior(data, mus, index - 1, sigmasq))
 }
 
 
