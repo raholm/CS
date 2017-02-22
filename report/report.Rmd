@@ -141,7 +141,7 @@ Here is our function.
 
 ### Choosing the appropriate c
 
-```{r}
+```{r, eval=FALSE, echo=FALSE}
 set.seed(123456)
 n <- 100000
 lap <- sapply(1:n,FUN = function(x) invLap())
@@ -153,9 +153,6 @@ plot(x = 0, y = 0, col ="white", xlim = c(-6,6),
 lines(density(lap), col = "red", lwd = 2)
 lines(density(nor), col = "blue", lwd = 2)
 ```
-
-Our approach for approximating c was to try to make a laplace-curve that would as much as possible cover the whole density-curve for the normal distribution.
-
 
 We know that
 
@@ -186,7 +183,7 @@ This gives us that
 \begin{align*}
 c &= \frac{2}{\sqrt{2 \pi}} e^{-\frac{1^2}{2} + 1} \\
   &= \frac{2}{\sqrt{2 \pi}} \sqrt{e} \\
-  & \approx 1.315
+  & \approx 1.32
 \end{align*}
 
 ### Simulation and comparison
