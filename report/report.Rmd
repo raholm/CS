@@ -118,7 +118,6 @@ load("../data/chemical.RData")
 
 chem <- data.frame(X = X , Y = Y)
 
-
 plot(chem)
 hist(chem$Y)
 
