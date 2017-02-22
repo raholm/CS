@@ -194,6 +194,10 @@ gibbs <- function(data, tmax){
         for (j in 1:d){
             mus[i, j] <- posterior(data, mus[i, ], j, sigmasq)
         }
+
+        if (i != tmax) {
+            mus[i+1,] <- mus[i,]
+        }
     }
 
     return(mus)
