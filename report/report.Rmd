@@ -126,8 +126,7 @@ hist(rbeta(50,3,2))
 ```
 
 
-## 2.2 
-
+## 2.2
 
 \begin{align*}
 p(\mu) &= p(\mu_1) p(\mu_2 | \mu_1) \cdots p(\mu_n | \mu_{n-1}) \\
@@ -136,7 +135,7 @@ p(y | \mu) &= p(y_1 | \mu_1) p(y_2 | \mu_2) \cdots p(y_n | \mu_n) \\
            &= \frac{1}{\sqrt{(2 \pi \sigma^2)^{n}}} \exp \left( - \frac{1}{2 \sigma^2} \sum_{i=1}^{n} (y_i - \mu_i)^2 \right)
 \end{align*}
 
-## 2.3 
+## 2.3
 
 \begin{align*}
 p(\mu | y) &\propto p(y | \mu) p(\mu) \\
@@ -146,73 +145,78 @@ p(\mu | y) &\propto p(y | \mu) p(\mu) \\
 This
 
 \begin{align*}
-p(\mu_1 | \mu_{-1}, y) &\propto \exp \left( -\frac{1}{\sigma^2} (\mu_1 - (y_1 + \mu_{2}) / 2)^2 \right) \\
+p(\mu_1 | \mu_{-1}, y) &\propto \exp \left( -\frac{2}{2 \sigma^2} (\mu_1 - (y_1 + \mu_{2}) / 2)^2 \right) \\
 p(\mu_i | \mu_{-i}, y) &\propto p(\mu_1 | \mu_{-1}, y) \exp \left( -\frac{3}{2 \sigma^2} \sum_{j=2}^{i} (\mu_j - (y_j + \mu_{j-1} + \mu_{j+1}) / 3)^2 \right) \\
-p(\mu_n | \mu_{-n}, y) &\propto p(\mu_{n-1} | \mu_{-n-1}, y) \exp \left( -\frac{1}{\sigma^2} (\mu_n - (y_n + \mu_{n-1}) / 2)^2 \right) \\
+p(\mu_n | \mu_{-n}, y) &\propto p(\mu_{n-1} | \mu_{-n-1}, y) \exp \left( -\frac{2}{2 \sigma^2} (\mu_n - (y_n + \mu_{n-1}) / 2)^2 \right) \\
 \end{align*}
 
 Alternatively this
 
 \begin{align*}
-p(\mu_1 | \mu_{-1}, y) &\propto \exp \left( -\frac{1}{\sigma^2} (\mu_1 - (y_1 + \mu_{2}) / 2)^2 \right) \\
+p(\mu_1 | \mu_{-1}, y) &\propto \exp \left( -\frac{2}{2 \sigma^2} (\mu_1 - (y_1 + \mu_{2}) / 2)^2 \right) \\
 p(\mu_i | \mu_{-i}, y) &\propto \exp \left( -\frac{3}{2 \sigma^2} (\mu_i - (y_i + \mu_{i-1} + \mu_{i+1}) / 3)^2 \right) \\
-p(\mu_n | \mu_{-n}, y) &\propto \exp \left( -\frac{1}{\sigma^2} (\mu_n - (y_n + \mu_{n-1}) / 2)^2 \right) \\
+p(\mu_n | \mu_{-n}, y) &\propto \exp \left( -\frac{2}{2 \sigma^2} (\mu_n - (y_n + \mu_{n-1}) / 2)^2 \right) \\
 \end{align*}
 
-## 2.4 
+## 2.4
 
 ```{r}
+posterior <- function(data, mus, index, sigmasq){
+    if (index == 1){
+        return(rnorm(1,
+                     mean = (data[index] + mus[index + 1]) / 2,
+                     sd = sqrt(sigmasq / 2)))
+    }
 
-posterior <- function(y,meanS,index,sigmasq){ 
-  
-  if (index == 1){
-   return( rnorm(1, mean = (y[index] + meanS[index + 1])/2, sd = sqrt(sigmasq))  ) 
-  }  
-  
-  if (index == length(meanS)){
-   return( rnorm(1, mean = (y[index] + meanS[index - 1])/2, sd = sqrt(sigmasq)) *posterior(y,meanS,index- 1, sigmasq) )
-  } 
-  
-  #If not any of above statements
-  return( rnorm(1, mean = (y[index] + meanS[index - 1] + meanS[index + 1])/3, 
-                sd = sqrt(3/(2*sigmasq)) ) * posterior(y,meanS, index-1,sigmasq) )
-  
+    if (index == length(mus)){
+        return(rnorm(1,
+                     mean = (data[index] + mus[index - 1]) / 2,
+                     sd = sqrt(sigmasq / 2)))
+               ## * posterior(data, mus, index- 1, sigmasq))
+    }
+
+    return(rnorm(1,
+                 mean = (data[index] + mus[index - 1] + mus[index + 1]) / 3,
+                 sd = sqrt(sigmasq / 3)))
+           ## * posterior(data, mus, index - 1, sigmasq))
 }
 
 
 
 gibbs <- function(data, tmax){
-  d <- length(data)
-  t <- 0
-  xo <- rep(0, times = d )
-  
-  result <- matrix(0,nrow = tmax, ncol = d) 
-  
-  for (i in 1:tmax){
-    for (j in 1:d){
-      
-      result[i,j] <- posterior(data, index = j, mean = xo, sigmasq = 0.2)
-      xo <- result[(i-1):(i+1),j]
-      
+    d <- nrow(data)
+    t <- 0
+
+    mus <- matrix(0, nrow = tmax, ncol = d)
+    sigmasq <- 0.2
+
+    for (i in 1:tmax){
+        for (j in 1:d){
+            mus[i, j] <- posterior(data, mus[i, ], j, sigmasq)
+        }
     }
-    
-  }
-return(result)  
-  
+
+    return(mus)
 }
 
 ```
 
-
-
 ```{r}
-mu <- gibbs(data = chem$Y, tmax = 1000)
+set.seed(123456)
 
+d <- as.matrix(chem$Y)
+mu <- gibbs(data = d, tmax = 1000)
+emu <- colMeans(mu)
 
-plot(chem)
+plot(chem, col="red", xlab="X", ylab="Y")
 par(new = TRUE)
-plot()
-
+plot(chem$X, emu, col="blue", xlab="", ylab="", axes=FALSE)
 ```
 
+## 2.5
 
+```{r}
+library(coda)
+
+traceplot(as.mcmc(mu[, 50]))
+```
