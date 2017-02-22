@@ -152,7 +152,7 @@ This gives us
 
 \begin{align*}
 p(\mu_1 | \mu_{-1}, y) &\propto \exp \left( -\frac{2}{2 \sigma^2} (\mu_1 - (y_1 + \mu_{2}) / 2)^2 \right), \\
-p(\mu_i | \mu_{-i}, y) &\propto \exp \left( -\frac{3}{2 \sigma^2} (\mu_i - (y_i + \mu_{i-1} + \mu_{i+1}) / 3)^2 \right), \\
+p(\mu_i | \mu_{-i}, y) &\propto \exp \left( -\frac{3}{2 \sigma^2} (\mu_i - (y_i + \mu_{i-1} + \mu_{i+1}) / 3)^2 \right) \text{for } i = 2, \ldots, n - 1, \\
 p(\mu_n | \mu_{-n}, y) &\propto \exp \left( -\frac{2}{2 \sigma^2} (\mu_n - (y_n + \mu_{n-1}) / 2)^2 \right).
 \end{align*}
 
