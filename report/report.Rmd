@@ -140,7 +140,7 @@ Here is our function.
 
 ### Choosing the appropriate c
 
-```{r}
+```{r, eval=FALSE, echo=FALSE}
 set.seed(123456)
 n <- 100000
 lap <- sapply(1:n,FUN = function(x) invLap())
@@ -153,19 +153,37 @@ lines(density(lap), col = "red", lwd = 2)
 lines(density(nor), col = "blue", lwd = 2)
 ```
 
-Our approach for approximating c was to try to make a laplace-curve that would as much as possible cover the whole density-curve for the normal distribution.
+We know that
 
-For x > 0 since it is symmetric
+\begin{align*}
+f_y(x) &= \frac{1}{2} e^{-x} \\
+f_x(x) &= \frac{1}{\sqrt{2 \pi}} e^{-\frac{x^2}{2}}.
+\end{align*}
 
-$cf_y(x) - f_x(x) = 0$
 
-$c/2 e^{-x} - 1/(\sqrt{2\pi}) e^{-x^2/2} = 0$
+For $x \geq 0$ since it is symmetric
 
-$log(c/2) - x - log(1/(\sqrt{2\pi})) + x^2/2 = 0$
+\begin{align*}
+c f_y(x) \geq f_x(x) \\
+c \geq \frac{2}{\sqrt{2 \pi}} e^{-\frac{x^2}{2} + x}.
+\end{align*}
 
-after some equation-solving we come to the solution
+To get the minimum $c$ required we have to maximize $e^{-\frac{x^2}{2} + x}$ which is the same as to maximize
+$-\frac{x^2}{2} + x$.
 
-$c = 1.315$
+\begin{align*}
+g(x) &= -\frac{x^2}{2} + x \\
+g^{\prime}(x) &= 1 - x \\
+1 - x &= 0 \Rightarrow x = 1
+\end{align*}
+
+This gives us that
+
+\begin{align*}
+c &= \frac{2}{\sqrt{2 \pi}} e^{-\frac{1^2}{2} + 1} \\
+  &= \frac{2}{\sqrt{2 \pi}} \sqrt{e} \\
+  & \approx 1.32
+\end{align*}
 
 ### Simulation and comparison
 
