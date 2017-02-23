@@ -64,6 +64,8 @@ lgnsamples <- metropolis_hastings(X0=X0, iters=iters, funcs=lognormalfuncs)
 plot(lgnsamples, type="l", main="Log-Normal Chain", xlab="", ylab="")
 ```
 
+The time-series graph seems to be far from stationary. There is no constant mean and the variation fluctuates over the time-series. For several iterations it keeps the same value before changing to another value that it repeats for some iterations, this pattern repeats for the whole time-series. This time series has not converged and seems to be far from convergence as well. There seem to be some sort of burn in period for the first 10 iterations.
+
 ## 1.2
 
 ```{r}
@@ -72,6 +74,11 @@ chisamples <- metropolis_hastings(X0=X0, iters=iters, funcs=chisquarefuncs)
 plot(chisamples, type="l", main="Chi-Squared Chain", xlab="", ylab="")
 ```
 
+Here the time series looks of trend and seems to have one global mean over the time series. The variation also seems constant although if strict notes could be made that the variation seems marginally higher in the last 200 iterations. We consider that this time series has converged. A very small burn in period can be observed that last for about 2-3 iterations.
+
+Overall it is clear that the chi-square distribution is a more appropriate proposal than the log-normal distribution.
+
+## 1.4
 ```{r}
 oldpar <- par(mfrow = c(1, 3))
 
@@ -96,11 +103,15 @@ hist(chisamples, main="Sampled (Chi-Squared)", xlab="", ylab="", axes=FALSE)
 par(oldpar)
 ```
 
-## 1.4
+Above are three histogram presented, the left being the actual values from the function, the middle one MC-sampling from the log-normal as the proposal distribution and the right being the MC-sampling from the chi-square as proposal distribution.
 
-## Geldman rubin
+The chi-square samples look very similar to the actual values whereas the log-normal samples are far from resembling the actual distribution. This support our previous interpretation that the chi-square is a better proposal distribution for this specific function.
+
+
+## Gelman-Rubin
+
 ```{r}
-Geldman<-function(x){
+gelman_rubin <-function(x){
   k <- nrow(x)
   n <- ncol(x)
 
@@ -118,11 +129,11 @@ set.seed(123456)
 resultMatrix <- do.call(rbind, lapply(1:10, FUN = function(x)
     metropolis_hastings(X0 = x, iters = iters, funcs = chisquarefuncs)))
 
-GeldmanRes <- Geldman(resultMatrix)
-GeldmanRes
+gelmanrubinres <- gelman_rubin(resultMatrix)
+gelmanrubinres
 ```
 
-We get a value of 1 which indicates that the chain has converged.
+We get a value of 1 from the Gelman-Rubin algorithm which indicates that the chain has converged.
 
 ## 1.5
 
@@ -133,9 +144,7 @@ cat("The estimated expected value by Chi-Squared samples:", mean(chisamples))
 
 ## 1.6
 
-Since we know that the actual distribution is gamma with $\alpha = 6, \beta = 1$ and the expected value is
-defined as $\frac{\alpha}{\beta} = 6$. So we can see that the samples generated from metropolis-hasting algorithm using the chi-squared distribution as proposal have a very close estimate while using log-normal distribution does not.
-
+Since we know that the actual distribution is gamma with $\alpha = 6, \beta = 1$, we also know that the expected value is defined as $\frac{\alpha}{\beta} = 6$. So we can see that the samples generated from metropolis-hasting algorithm using the chi-squared distribution as proposal have a very close estimate while using log-normal distribution does not.
 
 \newpage
 
@@ -230,9 +239,14 @@ d <- as.matrix(chem$Y)
 mu <- gibbs(data = d, tmax = 1000)
 emu <- colMeans(mu)
 
-plot(chem, col="red", xlab="X", ylab="Y")
-par(new = TRUE)
-plot(chem$X, emu, col="blue", xlab="", ylab="", axes=FALSE)
+library(ggplot2)
+
+ggplot(data = chem, aes(x = X, y = Y)) +
+    geom_point(col = "red", alpha = 0.9) +
+    geom_point(aes(y = emu), col ="blue", alpha = .5) +
+    theme(panel.grid.minor = element_blank(),
+          plot.title = element_text(hjust = 0.5)) +
+    labs(title = "Result of Gibbs-sampling")
 ```
 
 ## 2.5
@@ -242,4 +256,4 @@ library(coda)
 traceplot(as.mcmc(mu[, 50]))
 ```
 
-We can see that after roughly 600 iterations the value is more stable since it doesn't have those large spikes that occur in earlier iterations.
+We can see that after roughly 600 iterations the value is more stable since it doesn't have those large spikes that occur in earlier iterations and the mean value seems to have stabilized.
