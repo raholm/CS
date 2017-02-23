@@ -11,6 +11,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Question 1
+
 ```{r}
 targetdensity <- function(x) {
     x^5 * exp(-x)
@@ -39,7 +41,7 @@ metropolis_hastings <- function(X0, iters, funcs) {
         u <- runif(1)
 
         if (u < alpha(x, y)) {
-            x = y
+            x <- y
         }
 
         values[i] <- x
@@ -48,44 +50,53 @@ metropolis_hastings <- function(X0, iters, funcs) {
     values
 }
 
-iters <- 1000
+iters <- 5000
 X0 <- 1
 
 actual <- rgamma(iters, shape=6, rate=1)
 ```
 
-```{r}
-set.seed(123456)
-samples1 <- metropolis_hastings(X0=X0, iters=iters, funcs=lognormalfuncs)
-mean(samples1)
-plot(samples1, type="l")
-```
+## 1.1
 
 ```{r}
 set.seed(123456)
-samples2 <- metropolis_hastings(X0=X0, iters=iters, funcs=chisquarefuncs)
-mean(samples2)
-plot(samples2, type="l")
+lgnsamples <- metropolis_hastings(X0=X0, iters=iters, funcs=lognormalfuncs)
+plot(lgnsamples, type="l", main="Log-Normal Chain", xlab="", ylab="")
 ```
 
+## 1.2
+
 ```{r}
-x <- 0:20
-y <- sapply(x, targetdensity)
-plot(x, y)
+set.seed(123456)
+chisamples <- metropolis_hastings(X0=X0, iters=iters, funcs=chisquarefuncs)
+plot(chisamples, type="l", main="Chi-Squared Chain", xlab="", ylab="")
 ```
 
 ```{r}
 oldpar <- par(mfrow = c(1, 3))
 
-hist(actual, main="Actual")
-hist(samples1, main="Sampled (log-normal)")
-hist(samples2, main="Sampled (chi-squared)")
+plot(density(actual), main="Actual", xlab="", ylab="", axes=FALSE)
+plot(density(lgnsamples), main="Sampled (Log-Normal)", xlab="", ylab="", axes=FALSE)
+plot(density(chisamples), main="Sampled (Chi-Squared)", xlab="", ylab="", axes=FALSE)
 ```
 
 ```{r, echo=FALSE}
 par(oldpar)
 ```
 
+```{r}
+oldpar <- par(mfrow = c(1, 3))
+
+hist(actual, main="Actual", xlab="", ylab="", axes=FALSE)
+hist(lgnsamples, main="Sampled (Log-Normal)", xlab="", ylab="", axes=FALSE)
+hist(chisamples, main="Sampled (Chi-Squared)", xlab="", ylab="", axes=FALSE)
+```
+
+```{r, echo=FALSE}
+par(oldpar)
+```
+
+## 1.4
 
 ## Geldman rubin
 ```{r}
@@ -103,6 +114,7 @@ Geldman<-function(x){
   sqrtR
 }
 
+set.seed(123456)
 resultMatrix <- do.call(rbind, lapply(1:10, FUN = function(x)
     metropolis_hastings(X0 = x, iters = iters, funcs = chisquarefuncs)))
 
@@ -110,6 +122,22 @@ GeldmanRes <- Geldman(resultMatrix)
 GeldmanRes
 ```
 
+We get a value of 1 which indicates that the chain has converged.
+
+## 1.5
+
+```{r}
+cat("The estimated expected value by Log-Normal samples:", mean(lgnsamples))
+cat("The estimated expected value by Chi-Squared samples:", mean(chisamples))
+```
+
+## 1.6
+
+Since we know that the actual distribution is gamma with $\alpha = 6, \beta = 1$ and the expected value is
+defined as $\frac{\alpha}{\beta} = 6$. So we can see that the samples generated from metropolis-hasting algorithm using the chi-squared distribution as proposal have a very close estimate while using log-normal distribution does not.
+
+
+\newpage
 
 # Question 2
 
@@ -119,9 +147,6 @@ load("../data/chemical.RData")
 chem <- data.frame(X = X , Y = Y)
 
 plot(chem)
-hist(chem$Y)
-
-hist(rbeta(50,3,2))
 ```
 
 
@@ -177,8 +202,6 @@ posterior <- function(data, mus, index, sigmasq){
                  sd = sqrt(sigmasq / 3)))
 }
 
-
-
 gibbs <- function(data, tmax){
     d <- nrow(data)
     t <- 0
@@ -198,7 +221,6 @@ gibbs <- function(data, tmax){
 
     return(mus)
 }
-
 ```
 
 ```{r}
@@ -217,6 +239,7 @@ plot(chem$X, emu, col="blue", xlab="", ylab="", axes=FALSE)
 
 ```{r}
 library(coda)
-
 traceplot(as.mcmc(mu[, 50]))
 ```
+
+We can see that after roughly 600 iterations the value is more stable since it doesn't have those large spikes that occur in earlier iterations.
