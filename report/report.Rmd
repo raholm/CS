@@ -34,9 +34,8 @@ cityUnif <- function(data){
 
 ```{r}
 n <- 20
-
 rmpop <- pop
-selpop <-  data.frame()
+selpop <- data.frame()
 
 set.seed(123456)
 
@@ -51,10 +50,10 @@ for (i in 1:n) {
 ## 1.4
 
 ```{r}
-print(paste(as.character(selpop$Municipality),":",selpop$Population))
+print(paste(as.character(selpop$Municipality), ":", selpop$Population))
 ```
 
-As seen in the output above, we in general select cities with large populations. This is logical since the addition of cities is based on the population, i.e. highly populated cities are more likely to be added, thus it is less likely to add smaller cities in the output.
+As seen in the output above, we in general select cities with large populations. This is logical since the selection of cities is based on the population thus making it more likely to pick larger cities.
 
 ## 1.5
 
@@ -76,7 +75,7 @@ ggplot(plot_data, aes(pop, fill=data)) +
     labs(fill="Data")
 ```
 
-In the histograms above the width of a staple is 10000 and we can see that in the data set most cities are $\leq 50000$ in population and the cities we selected are all over the place in terms of the size. We would expect to pick larger cities but since there are so many mid-sized cities in the data set it is also likely to get some of those, that is why we get such a mix of sizes.
+In the histograms above the width of a staple is 10000 and we can see that in the data set most cities are $\leq 50000$ in population and the cities we selected are all over the place in terms of size. We can see that there are only a few cities that are very large and most of those are selected as we would expect and a approximately half of the selected are mid-sized cities due to the frequency of those in the data set.
 
 \newpage
 
