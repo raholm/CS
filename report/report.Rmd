@@ -11,6 +11,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Question 1
+
 ```{r}
 targetdensity <- function(x) {
     x^5 * exp(-x)
@@ -54,19 +56,30 @@ X0 <- 1
 actual <- rgamma(iters, shape=6, rate=1)
 ```
 
+
+## 1.1 
+
 ```{r}
 set.seed(123456)
 samples1 <- metropolis_hastings(X0=X0, iters=iters, funcs=lognormalfuncs)
 mean(samples1)
-plot(samples1, type="l")
+plot(samples1, type="l", main = "Log-Normal function")
 ```
+
+The time-series graph seems to be far from stationary. There is no constant mean and the variation fluctuates over the time-series. For several itterations it keeps the same value before changing to another value that it repeats for some itterations, this pattern repeats for the whole time-series. This time series has not converged and seems to be far from convergence as well. There seem to be some sort of burn in period for the first 10 itterations.
+
+## 1.2 
 
 ```{r}
 set.seed(123456)
 samples2 <- metropolis_hastings(X0=X0, iters=iters, funcs=chisquarefuncs)
 mean(samples2)
-plot(samples2, type="l")
+plot(samples2, type="l", main = "Chi-square function")
 ```
+
+Here the time series looks of trend and seems to have one global mean over the time series. The variation also seems constant although if strict notes could be made that the variation seems marginaly higher in the last 200 itterations. We consider that this time series has converged. A very small burn in period can be observed that last for about 2-3 itterations.
+
+Over-all it is clear that the Chi-square distirbution is more apropriate proposal than the Chi-square distibution.
 
 ```{r}
 x <- 0:20
@@ -80,11 +93,15 @@ oldpar <- par(mfrow = c(1, 3))
 hist(actual, main="Actual")
 hist(samples1, main="Sampled (log-normal)")
 hist(samples2, main="Sampled (chi-squared)")
+par(oldpar)
+
 ```
 
-```{r, echo=FALSE}
-par(oldpar)
-```
+Above are three histogram presented, the left being the actual values from the function, the middle one MC-sampling from the log-normal as the proposal distribution and the right beeing the MC-sampling from the chi-square as proposal distribution. 
+
+The chi-square samples look very similar to the actual values wheras the log-normal samples are far from resembling the actual distribution. This support our previous enterpretation that the chi-square is a better proposal distribution for this specific function.   
+
+
 
 
 ## Geldman rubin
@@ -208,9 +225,15 @@ d <- as.matrix(chem$Y)
 mu <- gibbs(data = d, tmax = 1000)
 emu <- colMeans(mu)
 
-plot(chem, col="red", xlab="X", ylab="Y")
-par(new = TRUE)
-plot(chem$X, emu, col="blue", xlab="", ylab="", axes=FALSE)
+library(ggplot2)
+
+ggplot(data = chem, aes(x = X, y = Y)) + geom_point(col = "red", alpha = 0.9) +
+  geom_point(aes(y = emu), col ="blue", alpha = .5) +
+  theme(panel.grid.minor = element_blank(), 
+        plot.title = element_text(hjust = 0.5)) +
+  labs(title = "Result of Gibbs-sampling") 
+
+
 ```
 
 ## 2.5
