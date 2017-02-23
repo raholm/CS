@@ -182,12 +182,11 @@ lines(density(nor), col = "blue", lwd = 2)
 We know that
 
 \begin{align*}
-f_y(x) &= \frac{1}{2} e^{-x} \\
+f_y(x) &= \frac{1}{2} e^{-|x|} \\
 f_x(x) &= \frac{1}{\sqrt{2 \pi}} e^{-\frac{x^2}{2}}.
 \end{align*}
 
-
-For $x \geq 0$ since it is symmetric
+Since the distributions are symmetric around $x = 0$ we assume $x \geq 0$ in the following calculations.
 
 \begin{align*}
 c f_y(x) \geq f_x(x) \\
