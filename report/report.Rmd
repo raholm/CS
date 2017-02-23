@@ -76,13 +76,40 @@ ggplot(plot_data, aes(pop, fill=data)) +
     labs(fill="Data")
 ```
 
-In the histograms above the width of a staple is 10000 and we can see that in the data set most cities are $\leq 50000$ in population and the cities we selected are all $\leq 20000$ in size. This is as described above expected but we can also see that it is expected in terms of the number of cities in that range.
+In the histograms above the width of a staple is 10000 and we can see that in the data set most cities are $\leq 50000$ in population and the cities we selected are all over the place in terms of the size. We would expect to pick larger cities but since there are so many mid-sized cities in the data set it is also likely to get some of those, that is why we get such a mix of sizes.
 
 \newpage
 
 # Question 2
 
 ## 2.1
+
+We have
+
+\begin{align*}
+p(x) = \frac{1}{2} e^{-|x|}.
+\end{align*}
+
+For $X \geq 0$
+
+\begin{align*}
+F(x) &= \int_{-\infty}^{0} \frac{1}{2} e^x dx + \int_{0}^{x} \frac{1}{2} e^{-x} dx \\
+     &= \frac{1}{2} \left[ e^x \right]_{-\infty}^{0} - \frac{1}{2} \left[ e^{-x} \right]_{0}^{x} \\
+     &= 1 - \frac{1}{2} e^{-x} \\
+     &\Downarrow \\
+x    &= -\log(2 - 2y) \text{, } y \sim U(0.5, 1)
+\end{align*}
+
+
+For $X < 0$
+
+\begin{align*}
+F(x) &= \int_{-\infty}^{x} \frac{1}{2} e^x dx \\
+     &= \frac{1}{2} \left[ e^x \right]_{-\infty}^{x} \\
+     &= \frac{1}{2} e^x \\
+     &\Downarrow \\
+x    &= \log(2y) \text{, } y \sim U(0, 0.5)
+\end{align*}
 
 ```{r}
 invLap <- function(){
@@ -136,8 +163,6 @@ ar <- function(c) {
   }
 }
 ```
-
-Here is our function.
 
 ### Choosing the appropriate c
 
@@ -203,6 +228,8 @@ plot(x = 0, y = 0, col ="white", xlim = c(-5,5),
 lines(density(ARsim$rn), col="red", lwd=2)
 lines(density(nor), col="blue", lwd=2)
 ```
+
+We can see from the plot above that the simulated distribution (red) is fairly similar to the normal distribution (blue).
 
 ```{r}
 par(mfrow = c(1,2))
