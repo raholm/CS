@@ -13,6 +13,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Question 1
 
+In this task we are going to generate samples from the distribution with probability density function
+
+\begin{equation*}
+f(x) \propto x^5 e^{-x}, x > 0
+\end{equation*}
+
+using the Metropolis-Hastings algorithm. We will be trying two different proposal distributions, namely the log-normal and chi-squared. We picked 1 to be the starting point and ran the algorithm for 5000 iterations in each case.
+
 ```{r}
 targetdensity <- function(x) {
     x^5 * exp(-x)
@@ -150,6 +158,8 @@ Since we know that the actual distribution is gamma with $\alpha = 6, \beta = 1$
 
 # Question 2
 
+We have been given noisy data and the purpose of this task is to restore the expected values with a Gibbs sampler using a Bayesian model introduced in 2.2-2.3.
+
 ```{r}
 load("../data/chemical.RData")
 
@@ -250,7 +260,7 @@ ggplot(data = chem, aes(x = X, y = Y)) +
     labs(title = "Result of Gibbs-sampling")
 ```
 
-We can see that the estimated points (blue) by Gibbs sampling are more stable and do not vary as much between consecutive observations. It catches the relationship between x and y very well and the trend looks to follow a quadratic function just as we thought was reasonable in the beginning.
+We can see that the estimated points (blue) by Gibbs sampling are more stable and do not vary as much between consecutive observations. It catches the relationship between x and y very well and the trend looks to follow a quadratic function just as we thought would be reasonable in the beginning.
 
 ## 2.5
 
