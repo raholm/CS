@@ -155,10 +155,7 @@ cat("The estimated expected value by Chi-Squared samples:", mean(chisamples))
 Since we know that the actual distribution is gamma with $\alpha = 6, \beta = 1$, we also know that the expected value is defined as $\frac{\alpha}{\beta} = 6$. So we can see that the samples generated from metropolis-hasting algorithm using the chi-squared distribution as proposal have a very close estimate while using log-normal distribution does not.
 
 \newpage
-
 # Question 2
-
-We have been given noisy data and the purpose of this task is to restore the expected values with a Gibbs sampler using a Bayesian model introduced in 2.2-2.3.
 
 ```{r}
 load("../data/chemical.RData")
@@ -171,14 +168,18 @@ plot(chem)
 We would think that a quadratic model would be appropriate to use to estimate y given x.
 
 ## 2.2
-We have
+We have the prior which is i-number of means denoted $\mu$ that represent each observation in the data set. The suggested prior says that each mean should depend on the previous one. Except for $\mu_1$ which is equal to 1.
 
 \begin{align*}
+Prior \\
 p(\mu) &= p(\mu_1) p(\mu_2 | \mu_1) \cdots p(\mu_n | \mu_{n-1}) \\
        &= \frac{1}{\sqrt{(2 \pi \sigma^2)^{n-1}}} \exp \left( - \frac{1}{2 \sigma^2} \sum_{i=2}^{n} (\mu_i - \mu_{i-1})^2  \right), \\
+       Likelihood \\
 p(y | \mu) &= p(y_1 | \mu_1) p(y_2 | \mu_2) \cdots p(y_n | \mu_n) \\
            &= \frac{1}{\sqrt{(2 \pi \sigma^2)^{n}}} \exp \left( - \frac{1}{2 \sigma^2} \sum_{i=1}^{n} (y_i - \mu_i)^2 \right).
 \end{align*}
+
+\newpage
 
 ## 2.3
 The prosterior is then
@@ -193,7 +194,7 @@ p(\mu | y) &\propto p(y | \mu) p(\mu) \\
            \right).
 \end{align*}
 
-This gives us
+This gives us after some expansions and simplifications with these three separate expressions. This since the first and the last case are special cases because of the formulation of the prior.
 
 \begin{align*}
 p(\mu_1 | \mu_{-1}, y) &\propto \exp \left( -\frac{2}{2 \sigma^2} (\mu_1 - (y_1 + \mu_{2}) / 2)^2 \right), \\
@@ -243,6 +244,9 @@ gibbs <- function(data, tmax){
 }
 ```
 
+In the outer loop indexing over i from 1 to tmax we do the actuall gibbs-sampling where we take the estimated $mu_i$ from the previous itteration is used to update the $m_i$.   
+For the inner loop indexing over j from 1 to d in the gibbs-function we update each mu depending on the previous given the posterior we calculated. 
+
 ```{r}
 set.seed(123456)
 
@@ -260,7 +264,7 @@ ggplot(data = chem, aes(x = X, y = Y)) +
     labs(title = "Result of Gibbs-sampling")
 ```
 
-We can see that the estimated points (blue) by Gibbs sampling are more stable and do not vary as much between consecutive observations. It catches the relationship between x and y very well and the trend looks to follow a quadratic function just as we thought would be reasonable in the beginning.
+We can see that the estimated points (blue) by Gibbs sampling are more stable and do not vary as much between consecutive observations. It catches the relationship between x and y very well and the trend looks to follow a quadratic function just as we thought was reasonable in the beginning.
 
 ## 2.5
 
