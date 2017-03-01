@@ -10,3 +10,36 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+
+# Question 1 
+
+## 1.1 
+
+```{r}
+library(ggplot2)
+lottery <- read.csv2("../data/lottery.csv")
+
+head(lottery)
+
+q11 <- ggplot(lottery, aes(x = Day_of_year, y = Draft_No)) + geom_point()
+plot(q11)
+```
+
+The data looks fairly random although there might be some sort of skewness in the right side of the graph were there are a lacking some observations and therefore having a lower probability of beeing selected.
+
+
+## 1.2
+
+```{r}
+linegraf<- predict(loess(Draft_No ~ Day_of_year, data = lottery))
+
+q12 <- q11 + geom_path(aes(y = linegraf), col = "red")
+plot(q12)
+```
+
+The fit (line) doesn't seem straight and seems to have a decreasing trend which would support previous statements of people born on a days later on in a year has a lower probability of beeing selected.
+
+## 1.3
+
+
