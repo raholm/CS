@@ -10,3 +10,81 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+# Question 1
+
+
+## 1.1
+
+```{r}
+library(ggplot2)
+library(boot)
+```
+
+```{r}
+lottery <- read.csv("../data/lottery.csv", sep=";")
+```
+
+```{r}
+data <- data.frame(x=lottery$Draft_No, y=lottery$Day_of_year)
+
+ggplot() +
+    geom_point(data=data,
+               aes(x=x, y=y))
+```
+
+From the plot above the data definitely looks random.
+
+## 1.2
+
+```{r}
+loessfit <- loess(y ~ x, data=data)
+data$pred <- predict(fit, data$x)
+
+ggplot(data=data) +
+    geom_point(aes(x=x, y=y), color="red") +
+    geom_smooth(aes(x=x, y=pred), color="blue")
+```
+
+The line is not completely straight so something might be suspicious about the data.
+
+## 1.3
+
+```{r}
+T <- function(data, idx, model) {
+    data <- data[idx,]
+
+    xa <- data$x[which.min(data$y)]
+    xb <- data$x[which.max(data$y)]
+
+    ya <- predict(model, xa)
+    yb <- predict(model, xb)
+
+    (yb - ya) / (xb - xa)
+}
+```
+
+
+```{r}
+npboot <- boot(data=data, statistic=T, R=2000, model=loessfit)
+
+boot.ci(npboot)
+```
+
+```{r}
+hist(npboot$t)
+```
+
+## 1.4
+
+## 1.5
+
+## Question 2
+
+## 2.1
+
+## 2.2
+
+## 2.3
+
+## 2.4
