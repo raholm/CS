@@ -64,7 +64,6 @@ T <- function(data, idx, model) {
 }
 ```
 
-
 ```{r}
 npboot <- boot(data=data, statistic=T, R=2000, model=loessfit)
 
@@ -82,6 +81,15 @@ hist(npboot$t)
 ## Question 2
 
 ## 2.1
+
+```{r}
+price <- read.csv("../data/prices1.csv", sep=";")
+mean(price$Price)
+```
+
+```{r}
+hist(price$Price)
+```
 
 ## 2.2
 
