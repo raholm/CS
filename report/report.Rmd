@@ -26,7 +26,7 @@ lottery <- read.csv("../data/lottery.csv", sep=";")
 ```
 
 ```{r}
-data <- data.frame(x=lottery$Draft_No, y=lottery$Day_of_year)
+data <- data.frame(x=lottery$Day_of_year, y=lottery$Draft_No)
 
 ggplot() +
     geom_point(data=data,
@@ -39,11 +39,11 @@ From the plot above the data definitely looks random.
 
 ```{r}
 loessfit <- loess(y ~ x, data=data)
-data$pred <- predict(fit, data$x)
+data$pred <- predict(loessfit, data$x)
 
 ggplot(data=data) +
     geom_point(aes(x=x, y=y), color="red") +
-    geom_smooth(aes(x=x, y=pred), color="blue")
+    geom_line(aes(x=x, y=pred), color="blue")
 ```
 
 The line is not completely straight so something might be suspicious about the data.
@@ -51,23 +51,34 @@ The line is not completely straight so something might be suspicious about the d
 ## 1.3
 
 ```{r}
-T <- function(data, idx, model) {
+teststat <- function(model) {
+    function(data) {
+        xa <- data$x[which.min(data$y)]
+        xb <- data$x[which.max(data$y)]
+
+        ya <- predict(model, xa)
+        yb <- predict(model, xb)
+
+        (yb - ya) / (xb - xa)
+    }
+}
+
+teststat_boot <- function(data, idx, stat) {
     data <- data[idx,]
-
-    xa <- data$x[which.min(data$y)]
-    xb <- data$x[which.max(data$y)]
-
-    ya <- predict(model, xa)
-    yb <- predict(model, xb)
-
-    (yb - ya) / (xb - xa)
+    stat(data)
 }
 ```
 
 ```{r}
-npboot <- boot(data=data, statistic=T, R=2000, model=loessfit)
+B <- 2000
 
-boot.ci(npboot)
+set.seed(123456)
+npboot <- boot(data=data, statistic=teststat_boot, R=B, stat=teststat(loessfit))
+```
+
+```{r}
+## Two-sided p-value?
+sum(npboot$t >= 0) / B
 ```
 
 ```{r}
@@ -76,7 +87,48 @@ hist(npboot$t)
 
 ## 1.4
 
+```{r}
+teststat_permutation<- function(data, B, stat) {
+    n <- nrow(data)
+
+    statistics <- rep(0, B)
+    for (b in 1:B) {
+        newdata <- data.frame(x=data$x, y=sample(data$y, n))
+        statistics[b] <- stat(newdata)
+    }
+
+    sum(statistics >= 0) / B
+}
+
+set.seed(123456)
+teststat_permutation(data, B, teststat(loessfit))
+```
+
 ## 1.5
+
+```{r}
+genranddata <- function(x, alpha) {
+    data.frame(x=x, y=pmax(0, pmin(alpha * x + rnorm(length(x), mean=183, sd=10), 366)))
+}
+
+alphas <- seq(0.1, 10, by=0.1)
+pvalues <- rep(0, length(alphas))
+
+set.seed(123456)
+
+for (i in 1:length(alphas)) {
+    newdata <- genranddata(data$x, alphas[i])
+    pvalues[i] <- teststat_permutation(newdata, 200, teststat(loessfit))
+}
+
+plot(pvalues)
+```
+
+```{r}
+print(sum(pvalues <= 0.05))
+```
+
+\newpage
 
 ## Question 2
 
@@ -90,6 +142,8 @@ mean(price$Price)
 ```{r}
 hist(price$Price)
 ```
+
+Looks like a Gamma distribution.
 
 ## 2.2
 
