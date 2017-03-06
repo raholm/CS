@@ -62,8 +62,8 @@ teststat <- function(model) {
         xa <- data$x[which.min(data$y)]
         xb <- data$x[which.max(data$y)]
 
-        ya <- predict(model, xa)
-        yb <- predict(model, xb)
+        ya <- predict(model(y ~ x, data), xa)
+        yb <- predict(model(y ~ x, data), xb)
 
         (yb - ya) / (xb - xa)
     }
@@ -79,7 +79,7 @@ teststat_boot <- function(data, idx, stat) {
 B <- 2000
 
 set.seed(123456)
-npboot <- boot(data=data, statistic=teststat_boot, R=B, stat=teststat(loessfit))
+npboot <- boot(data=data, statistic=teststat_boot, R=B, stat=teststat(model=loess))
 ```
 
 ```{r}
@@ -93,19 +93,18 @@ hist(npboot$t)
 
 ```{r}
 myT <- function(data,ind){
+    data <- data[ind,]
+    modelloess <-loess(Draft_No ~ Day_of_year, data)
 
-data <- data[ind,]
-modelloess <-loess(Draft_No ~ Day_of_year, data)
+    Xb <- data$Draft_No[which.max(data$Day_of_year)]
+    Xa <- data$Draft_No[which.min(data$Day_of_year)]
 
-Xb <- data$Draft_No[which.max(data$Day_of_year)]
-Xa <- data$Draft_No[which.min(data$Day_of_year)]
+    YhatXb <- predict(modelloess,newdata = data.frame(Day_of_year = Xb))
+    YhatXa <- predict(modelloess,newdata = data.frame(Day_of_year = Xa))
 
-YhatXb <- predict(modelloess,newdata = data.frame(Day_of_year = Xb))
-YhatXa <- predict(modelloess,newdata = data.frame(Day_of_year = Xa))
+    ##YhatXa <- data$pred[which.min(data$Day_of_year)]
 
-#YhatXa <- data$pred[which.min(data$Day_of_year)]
-
-return( (YhatXb - YhatXa) / (Xb-Xa))
+    return( (YhatXb - YhatXa) / (Xb-Xa))
 }
 
 library(boot)
@@ -133,7 +132,7 @@ teststat_permutation<- function(data, B, stat) {
 }
 
 set.seed(123456)
-teststat_permutation(data, B, teststat(loessfit))
+teststat_permutation(data, B, teststat(loess))
 ```
 
 ## 1.5
@@ -150,7 +149,7 @@ set.seed(123456)
 
 for (i in 1:length(alphas)) {
     newdata <- genranddata(data$x, alphas[i])
-    pvalues[i] <- teststat_permutation(newdata, 200, teststat(loessfit))
+    pvalues[i] <- teststat_permutation(newdata, 200, teststat(loess))
 }
 
 plot(pvalues)
