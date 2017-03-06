@@ -38,7 +38,10 @@ data$pred <- predict(loessfit, data$x)
 
 linegraf<- predict(loess(Draft_No ~ Day_of_year, data = lottery))
 
-q12 <- q11 + geom_path(aes(y = linegraf), col = "red")
+loessmod <- loess(Draft_No ~ Day_of_year, data = lottery)
+lottery$pred<- predict(loessmod)
+
+q12 <- q11 + geom_path(data = lottery, aes(y = pred), col = "red")
 plot(q12)
 
 
@@ -88,6 +91,32 @@ sum(npboot$t >= 0) / B
 hist(npboot$t)
 ```
 
+```{r}
+myT <- function(data,ind){
+
+data <- data[ind,]
+modelloess <-loess(Draft_No ~ Day_of_year, data)
+
+Xb <- data$Draft_No[which.max(data$Day_of_year)]
+Xa <- data$Draft_No[which.min(data$Day_of_year)]
+
+YhatXb <- predict(modelloess,newdata = data.frame(Day_of_year = Xb))
+YhatXa <- predict(modelloess,newdata = data.frame(Day_of_year = Xa))
+
+#YhatXa <- data$pred[which.min(data$Day_of_year)]
+
+return( (YhatXb - YhatXa) / (Xb-Xa))
+}
+
+library(boot)
+
+Tboot <- boot(lottery[,c(4,5)],myT, R = 2000)
+hist(Tboot$t, xlim = c(-5,5), breaks = 1000)
+pt(Tboot$t0, df = nrow(lottery))
+
+mean(Tboot$t > 0)
+```
+
 ## 1.4
 
 ```{r}
@@ -129,6 +158,61 @@ plot(pvalues)
 
 ```{r}
 print(sum(pvalues <= 0.05))
+```
+
+```{r}
+for (aha in seq(0.1,10, by= 0.1)){
+
+    YandNum<- cbind(lottery[,4]*aha + rnorm(1,183,10),366)
+    Ymin <-apply(YandNum, MARGIN = 1, FUN = min)
+    Yx <- apply(cbind(0,Ymin), MARGIN = 1, FUN = max)
+    newLotto <- data.frame(cbind(lottery[,4],Yx))
+    colnames(newLotto) <- colnames(lottery[,c(4,5)])
+
+    newres<-perm_test(newLotto, B = 200)
+
+    ## hist(newres,breaks = 200, xlim = c(-5,5))
+}
+```
+
+```{r}
+## perm_test <- function(data){
+## #Assuming the data first column is labels and second is data.
+##   lables<- data[,1]
+##   data[,1]<- sample(lables, size = nrow(data), replace = FALSE)
+##   return(aggregate(data, by = list(unique(data[,1])), FUN = mean  ))
+## }
+
+perm_test <- function(data,B){
+
+    myPermT <- function(data){
+
+        data[,1]<- sample(data[,1], size = nrow(data), replace = FALSE)
+        data$pred <- predict(loess(Draft_No ~ Day_of_year, data))
+
+        Xb <- data$Draft_No[which.max(data$Day_of_year)]
+        Xa <- data$Draft_No[which.min(data$Day_of_year)]
+
+        YhatXb <- data$pred[which.max(data$Day_of_year)]
+        YhatXa <- data$pred[which.min(data$Day_of_year)]
+
+        return( (YhatXb - YhatXa) / (Xb-Xa))
+    }
+
+    res <- c()
+
+    for (i in 1:B){
+        res[i] <- myPermT(data)
+    }
+
+    return(res)
+}
+
+
+mres<-perm_test(lottery[,c(4,5)], B = 1000)
+hist(mres,breaks = 1000, xlim = c(-5,5))
+
+abline(v = myT(data = lottery[,c(4,5)]), col = "red")
 ```
 
 \newpage
