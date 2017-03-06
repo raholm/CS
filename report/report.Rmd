@@ -13,27 +13,22 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Question 1
 
-
 ## 1.1
 
 ```{r}
 library(ggplot2)
-library(boot)
-```
 
-```{r}
-lottery <- read.csv("../data/lottery.csv", sep=";")
-```
+lottery <- read.csv2("../data/lottery.csv")
 
-```{r}
+head(lottery)
+
+q11 <- ggplot(lottery, aes(x = Day_of_year, y = Draft_No)) + geom_point()
+plot(q11)
+
 data <- data.frame(x=lottery$Day_of_year, y=lottery$Draft_No)
-
-ggplot() +
-    geom_point(data=data,
-               aes(x=x, y=y))
 ```
 
-From the plot above the data definitely looks random.
+The data looks fairly random although there might be some sort of skewness in the right side of the graph were there are a lacking some observations and therefore having a lower probability of beeing selected.
 
 ## 1.2
 
@@ -41,16 +36,24 @@ From the plot above the data definitely looks random.
 loessfit <- loess(y ~ x, data=data)
 data$pred <- predict(loessfit, data$x)
 
-ggplot(data=data) +
-    geom_point(aes(x=x, y=y), color="red") +
-    geom_line(aes(x=x, y=pred), color="blue")
+linegraf<- predict(loess(Draft_No ~ Day_of_year, data = lottery))
+
+q12 <- q11 + geom_path(aes(y = linegraf), col = "red")
+plot(q12)
+
+
+## ggplot(data=data) +
+##     geom_point(aes(x=x, y=y), color="red") +
+##     geom_line(aes(x=x, y=pred), color="blue")
 ```
 
-The line is not completely straight so something might be suspicious about the data.
+The fit (line) doesn't seem straight and seems to have a decreasing trend which would support previous statements of people born on a days later on in a year has a lower probability of beeing selected.
 
 ## 1.3
 
 ```{r}
+library(boot)
+
 teststat <- function(model) {
     function(data) {
         xa <- data$x[which.min(data$y)]
