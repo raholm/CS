@@ -26,7 +26,7 @@ plot(q11)
 data <- data.frame(x=lottery$Day_of_year, y=lottery$Draft_No)
 ```
 
-The data looks fairly random although there might be some sort of skewness in the right side of the graph were there are a lacking some observations and therefore having a lower probability of beeing selected.
+The data looks random although there might be some sort of skewness in the right side of the graph were there are a lacking some observations and therefore having a lower probability of getting selected.
 
 ## 1.2
 
@@ -81,7 +81,7 @@ abline(v=pvalue, col = "red", lwd = 2)
 abline(v=mean(npboot$t), col="blue", lwd=2)
 ```
 
-The p-value was calculated to `r pvalue` and we can't reject the nullhypothesis at a 0.05 level. We conclude that this test tells us that the lottery is random.
+The p-value was calculated to `r pvalue` and we can't reject the nullhypothesis at a 0.05 alpha-level. We conclude Ho and that the lottery is random.
 
 ## 1.4
 
@@ -100,9 +100,11 @@ teststat_permutation<- function(data, B, stat) {
 }
 
 set.seed(123456)
-pvalue <- teststat_permutation(data, B, teststat(loess))
-pvalue
+pvalue2 <- teststat_permutation(data, B, teststat(loess))
+pvalue2
 ```
+
+We conclude Ho in this test as well, the lottery is random.
 
 ## 1.5
 
@@ -127,6 +129,7 @@ plot(pvalues)
 ```{r}
 print(sum(pvalues <= 0.05))
 ```
+Since we reject Ho in every test the power will be 1 becaus we can't have any Type-2 errors when we reject everything. This isn't strange since the test-data is obviously non-random and gives us an indication that the test-statistic is a good one. 
 
 \newpage
 
@@ -147,6 +150,95 @@ Looks like a Gamma distribution.
 
 ## 2.2
 
+```{r}
+bootmean <- function(data,ind){
+  data <- data[ind]
+  mean(data)
+}
+
+B <- 2000
+
+estmean <- boot(data = price$Price,bootmean, R = B)
+
+2*estmean$t0 - mean(estmean$t)
+
+mean(estmean$t- estmean$t0) 
+ 
+sum((estmean$t-mean(estmean$t))^2)/(B-1)
+cibo <- boot.ci(estmean)
+print(cibo)
+```
+
+
+```{r}
+
+hist(estmean$t, xlim = c(950,1300), main = "Bootstrap estimation of mean", xlab = "")
+abline(v= cibo$normal[2:3], col = "blue", lwd = 2)
+abline(v= cibo$basic[4:5], col = "red", lwd = 2)
+abline(v= cibo$percent[4:5], col = "orange", lwd = 2)
+abline(v= cibo$bca[4:5], col = "purple", lwd = 2)
+legend(y=400,x =1200,c("normal","basic","percent","bca"),lty = c(1,1),
+       col = c("blue","red","orange","purple"))
+
+```
+
+
 ## 2.3
 
+```{r}
+
+jackknife <- function(data,B,tstat){
+  stopifnot( B <= length(data))
+  est <- rep(1,times = B)
+  for(i in 1:B){
+    
+    est[i] <- tstat(data[-i])
+    
+  }
+  return(est)
+}
+
+
+jackest<-jackknife(price$Price, B = length(price$Price), tstat = mean)
+
+mean(jackest)
+
+n <- length(price$Price)
+
+
+tstar<- n*mean(price$Price)-(n-1)*jackest
+JT<-mean(tstar)
+jackvar <-(1/(n*(n-1)))*sum((tstar- JT)^2)
+
+lowerci <- JT - 1.96*sqrt(jackvar)
+upperci <- JT + 1.96*sqrt(jackvar)
+
+# mean(tstar) + qt(0.975,length(price$Price)-1)*sqrt(var(tstar)/length(price$Price))
+# mean(tstar) - qt(0.975,length(price$Price)-1)*sqrt(var(tstar)/length(price$Price))
+
+hist(jackest,breaks = 10, xlim = c(1000,1180), xlab = "" ,main = "Jackknife estimate")
+abline(v=lowerci, col ="blue", lwd = 3)
+abline(v=upperci, col ="blue", lwd = 3)
+```
+
+
 ## 2.4
+
+
+```{r, warning=FALSE}
+library(knitr)
+
+cimatrix<-rbind(
+  c("Normal",cibo$normal[2],mean(estmean$t),cibo$normal[2]),
+  c("Percent",cibo$percent[4],mean(estmean$t),cibo$percent[5]),
+  c("Basic",cibo$basic[4],mean(estmean$t),cibo$basic[5]),
+  c("Bca",cibo$bca[4],mean(estmean$t),cibo$bca[5]),
+  c("Jackknife",lowerci,mean(jackest),upperci)
+)
+colnames(cimatrix) <- c("Name","Lower","Mean","Upper") 
+
+kable(cimatrix, digits = 3)
+
+```
+
+
