@@ -73,13 +73,19 @@ npboot <- boot(data=data, statistic=teststat_boot, R=B, stat=teststat(model=loes
 ```
 
 ```{r}
-## Two-sided p-value?
-sum(npboot$t > 0) / B
+
+pvalue <- sum(npboot$t > 0) / B
+
 ```
 
 ```{r}
-hist(npboot$t, xlim = c(-5,5), breaks = 1000)
+hist(npboot$t, xlim = c(-1,0.7), breaks = 50, main = "Histogram for bootstrap t-values", xlab ="T")
+abline(v=pvalue, col = "red", lwd = 2)
+
+
 ```
+
+The p-value was calculated to `r pvalue` and we can't reject the nullhypothesis at a 0.05 level. We conclude that this test tells us that the lottery is random.
 
 ```{r}
 ## myT <- function(data, ind){
@@ -118,11 +124,13 @@ teststat_permutation<- function(data, B, stat) {
         statistics[b] <- stat(newdata)
     }
 
-    sum(statistics > 0) / B
+    return(statistics)
 }
 
 set.seed(123456)
-teststat_permutation(data, B, teststat(loess))
+statperm<-teststat_permutation(data, B, teststat(loess))
+hist(statperm,breaks = 40)
+pvalue<-sum(abs(statperm) >= abs(teststat(model = loess)(data))) / B
 ```
 
 ## 1.5
