@@ -229,7 +229,7 @@ abline(v=upperci, col ="blue", lwd = 3)
 library(knitr)
 
 cimatrix<-rbind(
-  c("Normal",cibo$normal[2],mean(estmean$t),cibo$normal[2]),
+  c("Normal",cibo$normal[2],mean(estmean$t),cibo$normal[3]),
   c("Percent",cibo$percent[4],mean(estmean$t),cibo$percent[5]),
   c("Basic",cibo$basic[4],mean(estmean$t),cibo$basic[5]),
   c("Bca",cibo$bca[4],mean(estmean$t),cibo$bca[5]),
@@ -241,4 +241,4 @@ kable(cimatrix, digits = 3)
 
 ```
 
-
+The normal, percent  and the basic along with the Jackknife confidence intervals are moving in a similar range with only small differences inbetween them. The only one sticking out is the bca CI with overall higher estimations than the rest.
