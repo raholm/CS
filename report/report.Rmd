@@ -154,14 +154,83 @@ physical <- read.csv("../data/physical1.csv")
 physical
 ```
 
-```{r}
+```{r, warning = FALSE}
 ggplot(physical) +
-    geom_point(aes(x=X, y=Y), col="blue") +
-    geom_point(aes(x=X, y=Z), col="red")
+    geom_point(aes(x=X, y=Y), col="blue", alpha = 0.6) +
+    geom_point(aes(x=X, y=Z), col="red", alpha = 0.6) + 
+    labs(y = "Y and Z")
 ```
 
 ## 2.2
 
 ## 2.3
 
+```{r}
+
+
+EM <- function(data, lambdazero, maxiter = 500, eps = 0.001){
+  
+  Estep <- function(data,lambda){
+    
+    r <- sum(is.na(data$z)) 
+    n <- nrow(data)
+    
+      (2 * sum(log(data$x)) - 2 * n * log(2 * lambda) - 
+      sum(data$x * data$y)/lambda - 
+      sum(data$x * data$z, na.rm = TRUE)/(2*lambda) - (n - r))
+    
+  }
+  
+  Mstep <- function(data, lambda){
+    
+    n <- nrow(data)
+    r <- sum(is.na(data$z))
+    
+     ( (sum(data$x * data$y) + 
+      sum(data$x * data$z, na.rm = TRUE) +
+       (n-r) * lambda)/(2*n) )    
+    
+  }
+  
+  
+  curlambda <- lambdazero
+  prevlambda <- lambdazero*5 
+  iter <- 1 
+  while(iter < maxiter && (abs(curlambda - prevlambda) > eps)){
+    
+    prevlambda <- curlambda
+    curlambda <- Mstep(data,lambda = curlambda)
+    
+    iter <- iter + 1
+  }
+
+  return(list(lambda = curlambda, iter = iter)) 
+}
+
+
+colnames(physical) <- c("x","y","z")
+res <- EM(data = physical, lambdazero = 100)
+print(res)
+```
+
+
 ## 2.4
+
+
+```{r, warning = FALSE}
+lamb <- res$lambda
+physical$EZ <- (2*lamb)/physical$x
+physical$EY <- lamb/physical$x
+
+
+
+ggplot(physical) +
+    geom_point(aes(x=x, y=y), col="blue", alpha = 0.6) +
+    geom_point(aes(x=x, y=z), col="red", alpha = 0.6) + 
+    geom_point(aes(x=x, y=EZ), col="purple", alpha = 0.6) +
+    geom_point(aes(x=x, y=EY), col="orange", alpha = 0.6) + 
+    labs(y = "Y and Z")
+
+```
+
+
