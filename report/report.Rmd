@@ -10,3 +10,100 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+# Question 1 
+
+## 1.1 
+
+
+```{r}
+genfunc <- function(x){
+  
+  (x^2/exp(x)) - 2 * exp( -(9*sin(x)) / (x^2+x+1) )
+  
+}
+```
+
+## 1.2 
+
+```{r}
+crossover <- function(x,y){
+  (x+y)/2
+}
+```
+
+
+## 1.3 
+
+```{r}
+mutate <- function(x){
+  
+  x^2 %% 30 
+  
+}
+```
+
+## 1.4 
+
+```{r}
+genetic <- function(maxiter, mutprob){
+  
+  #a 
+  plot(x = 0:30, y= genfunc(0:30),  xlim = c(0,30), type ="l")
+  
+  #b)
+  X <- seq(0,30,by = 5)
+  
+  #c)
+  values <- genfunc(X)
+  points(X,values, col = "red")
+  
+  #d)
+  bestvalues <- c()
+  
+  for (i in 1:maxiter){
+    
+    #i 
+    parents <- sample(1:length(X), size = 2 )
+    
+    #ii 
+    victim <- which.min(values)
+    
+    # iii 
+    child <- crossover(X[parents[1]],X[parents[2]])
+    
+    if( mutprob > runif(1,0,1)){
+     child <- mutate(child)
+    }
+    
+    # iv
+    X[victim] <- child
+    #values <- genfunc(X) Långsammare version då vi ersätter alla.
+    values[victim]<- genfunc(child)
+   
+    
+    # v
+    bestvalues[i] <- max(values)
+    
+  }
+  points(x = X, y = values, col = "darkgreen") 
+  
+}
+
+```
+
+## 1.5
+
+```{r}
+
+par(mfrow = c(3,2))
+genetic(maxiter = 10, mutprob = 0.1)
+genetic(maxiter = 10, mutprob = 0.5)
+genetic(maxiter = 10, mutprob = 0.9)
+genetic(maxiter = 100, mutprob = 0.1)
+genetic(maxiter = 100, mutprob = 0.5)
+genetic(maxiter = 100, mutprob = 0.9)
+par(mfrow = c(1,1))
+
+```
+
