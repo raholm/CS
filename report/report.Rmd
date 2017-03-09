@@ -4,7 +4,9 @@ subtitle: Lab 5
 author: "Emil K Svensson and Rasmus Holm"
 date: '`r Sys.Date()`'
 output:
-    pdf_document
+    pdf_document:
+        includes:
+            in_header: styles.sty
 ---
 
 ```{r setup, include=FALSE}
@@ -13,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Question 1
 
-In this exercise we are given a data set of a random selection process for the military draft and we supposed to use non-parametric bootstrap and permutation testing to test the null hypothesis that the selection process was actually random.
+In this exercise we are given a data set of a random selection process for the military draft and we are supposed to use non-parametric bootstrap and permutation testing to test the null-hypothesis that the selection process was actually random.
 
 ## 1.1
 
@@ -28,9 +30,11 @@ plot(q11)
 data <- data.frame(x=lottery$Day_of_year, y=lottery$Draft_No)
 ```
 
-The data looks random although there might be some sort of skewness in the right side of the graph were there are a lacking some observations and therefore having a lower probability of getting selected.
+The data looks random although there might be some sort of skewness in the right side of the graph where there are lacking some observations in the top part and therefore men born within the last 3 months of the year had a higher probability of getting drafted.
 
 ## 1.2
+
+To investigate the skewness further we used local regression which we would expect to be completely straight if the data is random. Below is a plot of the fit.
 
 ```{r}
 loessfit <- loess(y ~ x, data=data)
@@ -40,9 +44,20 @@ q12 <- q11 + geom_path(data = data, aes(x=x, y=pred), col = "red")
 plot(q12)
 ```
 
-The fit (line) doesn't seem straight and seems to have a decreasing trend which would support previous statements of people born on a days later on in a year has a lower probability of beeing selected.
+The fit (line) is not straight and have a decreasing trend which would support previous statement that men born on a day later in the year have a higher probability of being drafted.
 
 ## 1.3
+
+To test that the lottery is random we first used non-parametric bootstrapping with the following test statistics
+
+\begin{align*}
+T &= \frac{\hat{Y}(X_{b}) - \hat{Y}(X_{a})}{X_{b} - X_{a}}, \\
+\intertext{where}
+X_{a} &= \argmin_X Y(X), \\
+X_{b} &= \argmax_X Y(X),
+\end{align*}
+
+and $\hat{Y}(X)$ is the estimate from local regression. Observe that the test statistics tells us that if it is significantly larger than zero then the data is not random, that there is a trend. We used 2000 bootstrap samples to estimate the distribution of T and the result is presented below.
 
 ```{r}
 teststat <- function(model) {
@@ -68,12 +83,11 @@ teststat_boot <- function(data, idx, stat) {
 ```{r}
 library(boot)
 
-B <- 2000
+B <- 200
 
 set.seed(123456)
 npboot <- boot(data=data, statistic=teststat_boot, R=B, stat=teststat(model=loess))
 pvalue <- sum(npboot$t > 0) / B
-pvalue
 ```
 
 ```{r}
@@ -83,9 +97,14 @@ abline(v=pvalue, col = "red", lwd = 2)
 abline(v=mean(npboot$t), col="blue", lwd=2)
 ```
 
-In this task we use the 2000 calculated T-values from the bootstrap and use these as the T-distribution and thus the share of T-values over the null-hypothies will be the p-value. Since it is implied that if the fit of the loess function has a decreasing pattern it will generate a negative T-value, since this is idicated in the previous graph. Subsequently the test was formulated as follows $H_o: \mu >= 0 \\ H_a: \mu <0$
+In this task we use the 2000 calculated T-values from the bootstrap and use these as the T-distribution and thus the share of T-values that do not follow the null-hypothesis will be the p-value. \textbf{Since it is implied that if the fit of the local regression function has a decreasing pattern it will generate a negative T-value, since this is indicated in the previous graph.} Subsequently the test was formulated as follows:
 
-The p-value was calculated to `r pvalue` and we can't reject the nullhypothesis at a 0.05 alpha-level. We conclude Ho and that the lottery is random.
+\begin{align*}
+H_o : \mu < 0 \\
+H_a : \mu \geq 0.
+\end{align*}
+
+The p-value was calculated to `r pvalue` and we can't reject the null-hypothesis at a 5\% significance level. We conclude $H_{o}$ and that the lottery is random.
 
 ## 1.4
 
@@ -105,14 +124,15 @@ teststat_permutation<- function(data, B, stat) {
 
 set.seed(123456)
 pvalue2 <- teststat_permutation(data, B, teststat(loess))
-pvalue2
 ```
 
-In permutation tests we compare the original t-statistic with T-statistics where the Draft No. are shuffled on random. In this sense if these diverge much from the original T-statistic the lottory is random. If they are similar we will get a lower p-value since the quota will be smaller.
+In permutation tests we compare the original T-statistic with T-statistics where the Draft No. are shuffled randomly. In this sense if these diverge much from the original T-statistic the lottery is random. If they are similar we will get a lower p-value since the quota will be smaller.
 
-In this case we conclude Ho in this test as well, and asert that the lottery is random.
+In this case the p-value is `r pvalue2` and at a 5\% significance level we conclude $H_o$ in this test as well, and assert that the lottery is random.
 
 ## 1.5
+
+To test that our test statistics is reliable in determining whether the lottery is random or not we used non-randomly generated data to calculate the power, i.e. 1 - Type-II errors (false negatives).
 
 ```{r}
 genranddata <- function(x, alpha) {
@@ -126,37 +146,41 @@ set.seed(123456)
 
 for (i in 1:length(alphas)) {
     newdata <- genranddata(data$x, alphas[i])
-    pvalues[i] <- teststat_permutation(newdata, 200, teststat(loess))
+    pvalues[i] <- teststat_permutation(newdata, 20, teststat(loess))
 }
 
-plot(pvalues)
+plot(pvalues, xlab="Sample", ylab="p-value", ylim=c(0, 0.05))
 ```
 
 ```{r}
-print(sum(pvalues <= 0.05))
+rejectionrate <- sum(pvalues <= 0.05) / length(pvalues)
 ```
-Since we reject Ho in every test the power will be 1 becaus we can't have any Type-2 errors when we reject everything. This isn't strange since the test-data is obviously non-random and gives us an indication that the test-statistic is a good one.
+
+The rejection rate is `r rejectionrate` and since we reject $H_o$ in every test the power will be 1 because we cannot have any Type-II errors when we reject everything. This is not strange since the test data is obviously non-random which gives us an indication that the test statistic is a good one for determining whether the data is random or not.
 
 \newpage
 
 ## Question 2
 
+In this task we are supposed to estimate the mean price of houses together with the variance using bootstrap and the jackknife method.
+
 ## 2.1
 
 ```{r}
 price <- read.csv("../data/prices1.csv", sep=";")
-mean(price$Price)
 ```
 
 ```{r}
-hist(price$Price)
+hist(price$Price, main="Price Distribution", xlab="Price")
 ```
 
-Looks like a Gamma distribution.
+The mean price of the data set is `r mean(price$Price)` and the histogram above Looks like a Gamma distribution.
 
 ## 2.2
 
-```{r}
+Below is the result we got from the bootstrap sampling.
+
+```{r, warning=FALSE}
 bootmean <- function(data,ind){
   data <- data[ind]
   mean(data)
@@ -166,18 +190,21 @@ B <- 2000
 
 estmean <- boot(data = price$Price,bootmean, R = B)
 
-2 * estmean$t0 - mean(estmean$t)
+bias_corrected_estmean <- 2 * estmean$t0 - mean(estmean$t)
 
-mean(estmean$t- estmean$t0)
+bias_correction <- mean(estmean$t- estmean$t0)
 
-sum((estmean$t - mean(estmean$t))^2) / (B - 1)
+estvar <- sum((estmean$t - mean(estmean$t))^2) / (B - 1)
+
 cibo <- boot.ci(estmean)
-print(cibo)
 ```
+
+The bias corrected estimate of the mean is `r bias_corrected_estmean`, the bias correction is `r bias_correction`, and the variance is estimated to `r estvar`.
 
 
 ```{r}
 hist(estmean$t, xlim = c(950,1300), main = "Bootstrap estimation of mean", xlab = "")
+abline(v=bias_corrected_estmean, col="pink", lwd=3)
 abline(v=cibo$normal[2:3], col = "blue", lwd = 2)
 abline(v=cibo$basic[4:5], col = "red", lwd = 2)
 abline(v=cibo$percent[4:5], col = "orange", lwd = 2)
@@ -191,38 +218,38 @@ legend(y=400, x=1200, c("normal","basic","percent","bca"), lty = c(1,1),
 ```{r}
 jackknife <- function(data,B,tstat){
   stopifnot(B >= 0 && B <= length(data))
+
   est <- rep(1, times = B)
+
   for(i in 1:B){
-
     est[i] <- tstat(data[-i])
-
   }
+
   return(est)
 }
 
-jackest <- jackknife(price$Price, B = length(price$Price), tstat = mean)
-
-mean(jackest)
+jackest <- jackknife(price$Price, B=length(price$Price), tstat=mean)
+jackestmean <- mean(jackest)
 
 n <- length(price$Price)
 
-tstar <- n*mean(price$Price)-(n-1)*jackest
+tstar <- n * mean(price$Price) - (n - 1) * jackest
 JT <- mean(tstar)
-jackvar <- (1 / (n * (n - 1))) * sum((tstar - JT)^2)
+jackvar <- sum((tstar - JT)^2) / (n * (n - 1))
 
 lowerci <- JT - 1.96 * sqrt(jackvar)
 upperci <- JT + 1.96 * sqrt(jackvar)
 
-hist(jackest,breaks = 10, xlim = c(1000,1180), xlab = "" ,main = "Jackknife estimate")
-abline(v=lowerci, col ="blue", lwd = 3)
-abline(v=upperci, col ="blue", lwd = 3)
+hist(jackest,breaks = 10, xlim = c(1000, 1180), xlab = "", main = "Jackknife estimate")
+abline(v=jackestmean, col="pink", lwd=3)
+abline(v=lowerci, col="blue", lwd = 3)
+abline(v=upperci, col="blue", lwd = 3)
 ```
 
 ## 2.4
 
 ```{r, warning=FALSE}
 library(knitr)
-options(digits=2)
 
 cimatrix <- rbind(
   c("Normal", cibo$normal[2], mean(estmean$t), cibo$normal[3]),
@@ -238,4 +265,4 @@ cimatrix[, 2:4] <- round(as.numeric(cimatrix[, 2:4]))
 kable(cimatrix)
 ```
 
-The normal, percent  and the basic along with the Jackknife confidence intervals are moving in a similar range with only small differences inbetween them. The only one sticking out is the bca CI with overall higher estimations than the rest.
+The normal, percent  and the basic along with the Jackknife confidence intervals are moving in a similar range with only small differences in-between them. The only one sticking out is the bca CI with overall higher estimations than the rest.
