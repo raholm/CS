@@ -39,7 +39,9 @@ To investigate the skewness further we used local regression which we would expe
 ```{r}
 loessfit <- loess(y ~ x, data=data)
 data$pred <- predict(loessfit, data$x)
+```
 
+```{r, echo=FALSE}
 q12 <- q11 + geom_path(data = data, aes(x=x, y=pred), col = "red")
 plot(q12)
 ```
@@ -57,7 +59,7 @@ X_{a} &= \argmin_X Y(X), \\
 X_{b} &= \argmax_X Y(X),
 \end{align*}
 
-and $\hat{Y}(X)$ is the estimate from local regression. Observe that the test statistics tells us that if it is significantly larger than zero then the data is not random, that there is a trend. We used 2000 bootstrap samples to estimate the distribution of T and the result is presented below.
+and $\hat{Y}(X)$ is the estimate from local regression. Observe that the test statistics tells us that if it is significantly larger than zero then the data is not random, that there is a trend in the data. We used 2000 bootstrap samples to estimate the distribution of T and the result is presented below.
 
 ```{r}
 teststat <- function(model) {
@@ -83,14 +85,14 @@ teststat_boot <- function(data, idx, stat) {
 ```{r}
 library(boot)
 
-B <- 200
+B <- 2000
 
 set.seed(123456)
 npboot <- boot(data=data, statistic=teststat_boot, R=B, stat=teststat(model=loess))
 pvalue <- sum(npboot$t > 0) / B
 ```
 
-```{r}
+```{r, echo=FALSE}
 hist(npboot$t, xlim = c(-1,0.7), breaks = 50,
      main = "Histogram for bootstrap t-values", xlab ="T")
 abline(v=pvalue, col = "red", lwd = 2)
@@ -100,8 +102,8 @@ abline(v=mean(npboot$t), col="blue", lwd=2)
 In this task we use the 2000 calculated T-values from the bootstrap and use these as the T-distribution and thus the share of T-values that do not follow the null-hypothesis will be the p-value. \textbf{Since it is implied that if the fit of the local regression function has a decreasing pattern it will generate a negative T-value, since this is indicated in the previous graph.} Subsequently the test was formulated as follows:
 
 \begin{align*}
-H_o : \mu < 0 \\
-H_a : \mu \geq 0.
+H_o : T < 0 \\
+H_a : T \geq 0.
 \end{align*}
 
 The p-value was calculated to `r pvalue` and we can't reject the null-hypothesis at a 5\% significance level. We conclude $H_{o}$ and that the lottery is random.
@@ -146,17 +148,17 @@ set.seed(123456)
 
 for (i in 1:length(alphas)) {
     newdata <- genranddata(data$x, alphas[i])
-    pvalues[i] <- teststat_permutation(newdata, 20, teststat(loess))
+    pvalues[i] <- teststat_permutation(newdata, 200, teststat(loess))
 }
 
-plot(pvalues, xlab="Sample", ylab="p-value", ylim=c(0, 0.05))
-```
-
-```{r}
 rejectionrate <- sum(pvalues <= 0.05) / length(pvalues)
 ```
 
-The rejection rate is `r rejectionrate` and since we reject $H_o$ in every test the power will be 1 because we cannot have any Type-II errors when we reject everything. This is not strange since the test data is obviously non-random which gives us an indication that the test statistic is a good one for determining whether the data is random or not.
+```{r, echo=FALSE}
+plot(pvalues, xlab="Sample", ylab="p-value", ylim=c(0, 0.05))
+```
+
+The rejection rate is `r rejectionrate` and since we reject $H_o$ in every test the power will be 1 because we cannot have any Type-II errors when we reject everything. This is not strange since the test data is obviously non-random which gives us an indication that the test statistic is a good one for determining whether the data is randomly generated or not.
 
 \newpage
 
@@ -170,15 +172,27 @@ In this task we are supposed to estimate the mean price of houses together with 
 price <- read.csv("../data/prices1.csv", sep=";")
 ```
 
-```{r}
+```{r, echo=FALSE}
 hist(price$Price, main="Price Distribution", xlab="Price")
 ```
 
-The mean price of the data set is `r mean(price$Price)` and the histogram above Looks like a Gamma distribution.
+The mean price of the data set is `r mean(price$Price)` and we think the histogram above looks like a Gamma distribution.
 
 ## 2.2
 
-Below is the result we got from the bootstrap sampling.
+To calculate the bias corrected mean estimate we used
+
+\begin{align*}
+\hat{T} = 2 T(D) - \frac{1}{B} \sum_{i=1}^{B} T(D_{i}^{*})
+\end{align*}
+
+and to estimate the variance we used
+
+\begin{align*}
+\widehat{Var \left[ T( \cdot ) \right] } &= \frac{1}{B - 1} \sum_{i=1}^{B} \left( T(D_{i}^{*}) - \overline{T(D^{*})} \right)^2.
+\end{align*}
+
+$D^{*}$ denotes the bootstrap samples while $D$ is the actual sample given to us. Below is the result we got from the bootstrap sampling.
 
 ```{r, warning=FALSE}
 bootmean <- function(data,ind){
@@ -199,10 +213,10 @@ estvar <- sum((estmean$t - mean(estmean$t))^2) / (B - 1)
 cibo <- boot.ci(estmean)
 ```
 
-The bias corrected estimate of the mean is `r bias_corrected_estmean`, the bias correction is `r bias_correction`, and the variance is estimated to `r estvar`.
+The bias corrected estimate of the mean is `r bias_corrected_estmean`, the bias correction, $\sum_{i=1}^{B} \left( T(D_{i}^*) - T(D) \right)$, is `r bias_correction`, and the variance is estimated to `r estvar`.
 
 
-```{r}
+```{r, echo=FALSE}
 hist(estmean$t, xlim = c(950,1300), main = "Bootstrap estimation of mean", xlab = "")
 abline(v=bias_corrected_estmean, col="pink", lwd=3)
 abline(v=cibo$normal[2:3], col = "blue", lwd = 2)
@@ -213,7 +227,19 @@ legend(y=400, x=1200, c("normal","basic","percent","bca"), lty = c(1,1),
        col=c("blue", "red", "orange", "purple"))
 ```
 
+We can see from the histogram above that all the different estimates of the confidence interval provided by the boot-library are fairly similar.
+
 ## 2.3
+
+We choose to set the number of jackknife samples to be equal to the number of samples in our data set since then we can estimate the variance by using
+
+\begin{align*}
+\widehat{Var \left[ T( \cdot ) \right] } &= \frac{1}{n (n- 1)} \sum_{i=1}^{n} \left( T_{i}^{*} - J(T) \right)^2 \\
+\intertext{where,}
+T_{i}^{*} &= nT(D) - (n - 1) T(D_{i}^{i}), \\
+J(T) &= \frac{1}{n} \sum_{i=1}^{n} T_{i}^{*}.
+\end{align*}
+
 
 ```{r}
 jackknife <- function(data,B,tstat){
@@ -239,23 +265,29 @@ jackvar <- sum((tstar - JT)^2) / (n * (n - 1))
 
 lowerci <- JT - 1.96 * sqrt(jackvar)
 upperci <- JT + 1.96 * sqrt(jackvar)
+```
 
+We get the estimate of mean to be `r jackestmean` and variance estimate to `r jackvar` which is similar to what we found previously with the bootstrap method.
+
+```{r, echo=FALSE}
 hist(jackest,breaks = 10, xlim = c(1000, 1180), xlab = "", main = "Jackknife estimate")
 abline(v=jackestmean, col="pink", lwd=3)
 abline(v=lowerci, col="blue", lwd = 3)
 abline(v=upperci, col="blue", lwd = 3)
 ```
 
+As expected the sample does not vary particular much but since we are using the formula previously mentioned for calculating the variance we adjust for the dependence of the samples and we can see a wide confidence interval similar to the ones estimated by the bootstrap method.
+
 ## 2.4
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, echo=FALSE}
 library(knitr)
 
 cimatrix <- rbind(
   c("Normal", cibo$normal[2], mean(estmean$t), cibo$normal[3]),
   c("Percent", cibo$percent[4], mean(estmean$t), cibo$percent[5]),
   c("Basic", cibo$basic[4], mean(estmean$t), cibo$basic[5]),
-  c("Bca", cibo$bca[4], mean(estmean$t), cibo$bca[5]),
+  c("BCa", cibo$bca[4], mean(estmean$t), cibo$bca[5]),
   c("Jackknife", lowerci, mean(jackest), upperci)
 )
 colnames(cimatrix) <- c("Name", "Lower", "Mean", "Upper")
@@ -265,4 +297,4 @@ cimatrix[, 2:4] <- round(as.numeric(cimatrix[, 2:4]))
 kable(cimatrix)
 ```
 
-The normal, percent  and the basic along with the Jackknife confidence intervals are moving in a similar range with only small differences in-between them. The only one sticking out is the bca CI with overall higher estimations than the rest.
+The normal, percent, and the basic along with the Jackknife confidence intervals are moving in a similar range with only small differences in-between them. The only one sticking out is the BCa CI with overall higher estimations than the rest. The mean rounded is estimated to be the same for both the bootstrap and jackknife methods.
