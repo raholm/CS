@@ -36,7 +36,7 @@ The data looks random although there might be some sort of skewness in the right
 
 To investigate the skewness further we used local regression which we would expect to be completely straight if the data is random. Below is a plot of the fit.
 
-```{r}
+```{r, echo=FALSE}
 loessfit <- loess(y ~ x, data=data)
 data$pred <- predict(loessfit, data$x)
 ```
@@ -99,7 +99,7 @@ abline(v=pvalue, col = "red", lwd = 2)
 abline(v=mean(npboot$t), col="blue", lwd=2)
 ```
 
-In this task we use the 2000 calculated T-values from the bootstrap and use these as the T-distribution and thus the share of T-values that do not follow the null-hypothesis will be the p-value. \textbf{Since it is implied that if the fit of the local regression function has a decreasing pattern it will generate a negative T-value, since this is indicated in the previous graph.} Subsequently the test was formulated as follows:
+In this task we use the 2000 calculated T-values from the bootstrap and use these as the T-distribution and thus the share of T-values that do not follow the null-hypothesis will be the p-value. Since it is implied that if the fit of the local regression function has a decreasing pattern it will generate a negative T-value which is seen in the graph in section 1.2. Subsequently the test was formulated as follows:
 
 \begin{align*}
 H_o : T < 0 \\
