@@ -81,6 +81,8 @@ abline(v=pvalue, col = "red", lwd = 2)
 abline(v=mean(npboot$t), col="blue", lwd=2)
 ```
 
+In this task we use the 2000 calculated T-values from the bootstrap and use these as the T-distribution and thus the share of T-values over the null-hypothies will be the p-value. Since it is implied that if the fit of the loess function has a decreasing pattern it will generate a negative T-value, since this is idicated in the previous graph. Subsequently the test was formulated as follows $H_o: \mu >= 0 \\ H_a: \mu <0$ 
+
 The p-value was calculated to `r pvalue` and we can't reject the nullhypothesis at a 0.05 alpha-level. We conclude Ho and that the lottery is random.
 
 ## 1.4
@@ -104,7 +106,9 @@ pvalue2 <- teststat_permutation(data, B, teststat(loess))
 pvalue2
 ```
 
-We conclude Ho in this test as well, the lottery is random.
+In permutation tests we compare the original t-statistic with T-statistics where the Draft No. are shuffled on random. In this sense if these diverge much from the original T-statistic the lottory is random. If they are similar we will get a lower p-value since the quota will be smaller.
+
+In this case we conclude Ho in this test as well, and asert that the lottery is random.
 
 ## 1.5
 
