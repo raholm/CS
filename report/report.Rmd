@@ -4,7 +4,9 @@ subtitle: Lab 6
 author: "Emil K Svensson and Rasmus Holm"
 date: '`r Sys.Date()`'
 output:
-    pdf_document
+    pdf_document:
+        includes:
+            in_header: styles.sty
 ---
 
 ```{r setup, include=FALSE}
@@ -14,7 +16,6 @@ knitr::opts_chunk$set(echo = TRUE)
 # Question 1
 
 ## 1.1
-
 
 ```{r}
 genfunc <- function(x) {
@@ -151,86 +152,146 @@ ggplot() +
 
 ```{r}
 physical <- read.csv("../data/physical1.csv")
-physical
 ```
 
 ```{r, warning = FALSE}
 ggplot(physical) +
     geom_point(aes(x=X, y=Y), col="blue", alpha = 0.6) +
-    geom_point(aes(x=X, y=Z), col="red", alpha = 0.6) + 
+    geom_point(aes(x=X, y=Z), col="red", alpha = 0.6) +
     labs(y = "Y and Z")
 ```
 
 ## 2.2
+We know
+
+\begin{align*}
+Y_{i} &\sim \exp(X_{i} / \lambda), \\
+Z_{i} &\sim \exp(X_{i} / (2 \lambda)).
+\end{align*}
+
+To find $\lambda$ using the EM-algorithm we want to find the likelihood which is
+
+\begin{align*}
+l(\lambda)
+&= P(\lambda | X, Y, Z) \\
+&= \prod_{i=1}^{n}
+\frac{x_{i}}{\lambda} \exp \left(- \frac{x_{i}}{\lambda} y_{i} \right)
+\frac{x_{i}}{2\lambda} \exp \left(- \frac{x_{i}}{2 \lambda} y_{i} \right) \\
+&= \prod_{i=1}^{n}
+\frac{x_{i}}{2 \lambda^2}
+\exp \left(- \frac{x_{i}}{\lambda} \left( y_{i} + \frac{z_{i}}{2} \right) \right).
+\end{align*}
+
+Since we know that multiplication with small numbers is bad for accuracy reasons in the computer we want the log-likelihood
+
+\begin{align*}
+L(\lambda)
+&= \sum_{i=1}^{n}
+\log \left( \frac{x_{i}}{2 \lambda^2} \exp \left(- \frac{x_{i}}{\lambda} \left( y_{i} + \frac{z_{i}}{2} \right) \right) \right) \\
+&= \sum_{i=1}^{n}
+\left( \log(x_{i}^2) - 2n \log(2 \lambda) - \frac{x_{i}}{\lambda} \left( y_{i} + \frac{z_{i}}{2} \right) \right) \\
+&=
+2 \sum_{i=1}^{n} \log(x_{i}) -
+2n \log(2 \lambda) -
+\sum_{i=1}^{n} \frac{x_{i}}{\lambda} \left( y_{i} + \frac{z_{i}}{2} \right).
+\end{align*}
+
+We don't know the true $\lambda$ but we do have an estimate and we want to find the expected value so we get
+
+\begin{align*}
+\E \left[ L(\lambda) | X, Y, Z, \lambda_{k} \right]
+&=
+2 \sum_{i=1}^{n} \log(x_{i}) -
+2n \log(2 \lambda) -
+\E \left[ \sum_{i=1}^{n} \frac{x_{i}}{\lambda} \left( y_{i} + \frac{z_{i}}{2} \right) | X, Y, Z, \lambda_{k}\right].
+\end{align*}
+
+The $Z$ data is partially observed so we decompose it into two variables, observed and unobserved, as $Z = \{ V, W \}$ where $V$ is the observed part, $|V| = r$, and $W$ is the unobserved part, $|W| = n - r$. Then we get
+
+\begin{align*}
+\E \left[ L(\lambda) | X, Y, V, \lambda_{k} \right]
+&=
+2 \sum_{i=1}^{n} \log(x_{i}) -
+2n \log(2 \lambda) -
+\sum_{i=1}^{n} \frac{x_{i}}{\lambda} y_{i} -
+\sum_{i=1}^{r} \frac{x_{i}}{2 \lambda} v_{i} -
+\sum_{i=r+1}^{n} \frac{x_{i}}{2 \lambda} \E \left[ w_{i} | X, Y, V, \lambda_{k} \right] \\
+&=
+2 \sum_{i=1}^{n} \log(x_{i}) -
+2n \log(2 \lambda) -
+\sum_{i=1}^{n} \frac{x_{i}}{\lambda} y_{i} -
+\sum_{i=1}^{r} \frac{x_{i}}{2 \lambda} v_{i} -
+\sum_{i=r+1}^{n} \frac{x_{i}}{2 \lambda} \frac{2 \lambda_{k}}{x_{i}} \\
+&=
+2 \sum_{i=1}^{n} \log(x_{i}) -
+2n \log(2 \lambda) -
+\sum_{i=1}^{n} \frac{x_{i}}{\lambda} y_{i} -
+\sum_{i=1}^{r} \frac{x_{i}}{2 \lambda} v_{i} -
+(n - k) \frac{\lambda_{k}}{\lambda}
+\end{align*}
+
+To maximize $\lambda$ we take the derivative and set it to zero and find
+
+\begin{align*}
+\lambda &=
+\frac{1}{2n} \left( \sum_{i=1}^{n} x_{i} y_{i} + \frac{1}{2} \sum_{i=1}^{r} x_{i} z_{i} + (n - r) \lambda_k \right)
+\end{align*}
 
 ## 2.3
 
 ```{r}
-
-
 EM <- function(data, lambdazero, maxiter = 500, eps = 0.001){
-  
-  Estep <- function(data,lambda){
-    
-    r <- sum(is.na(data$z)) 
-    n <- nrow(data)
-    
-      (2 * sum(log(data$x)) - 2 * n * log(2 * lambda) - 
-      sum(data$x * data$y)/lambda - 
-      sum(data$x * data$z, na.rm = TRUE)/(2*lambda) - (n - r))
-    
-  }
-  
-  Mstep <- function(data, lambda){
-    
-    n <- nrow(data)
-    r <- sum(is.na(data$z))
-    
-     ( (sum(data$x * data$y) + 
-      sum(data$x * data$z, na.rm = TRUE) +
-       (n-r) * lambda)/(2*n) )    
-    
-  }
-  
-  
-  curlambda <- lambdazero
-  prevlambda <- lambdazero*5 
-  iter <- 1 
-  while(iter < maxiter && (abs(curlambda - prevlambda) > eps)){
-    
-    prevlambda <- curlambda
-    curlambda <- Mstep(data,lambda = curlambda)
-    
-    iter <- iter + 1
-  }
+    Estep <- function(data,lambda){
+        r <- sum(is.na(data$z))
+        n <- nrow(data)
 
-  return(list(lambda = curlambda, iter = iter)) 
+        (2 * sum(log(data$x)) - 2 * n * log(2 * lambda) -
+         sum(data$x * data$y)/lambda -
+         sum(data$x * data$z, na.rm = TRUE)/(2*lambda) - (n - r))
+
+    }
+
+    Mstep <- function(data, lambda){
+
+        n <- nrow(data)
+        r <- sum(is.na(data$z))
+
+        ((sum(data$x * data$y) +
+          sum(data$x * data$z, na.rm = TRUE) / 2 +
+          (n - r) * lambda) / (2 * n))
+    }
+
+    curlambda <- lambdazero
+    prevlambda <- lambdazero*5
+    iter <- 1
+
+    while(iter < maxiter && (abs(curlambda - prevlambda) > eps)){
+
+        prevlambda <- curlambda
+        curlambda <- Mstep(data,lambda = curlambda)
+
+        iter <- iter + 1
+    }
+
+    return(list(lambda = curlambda, iter = iter))
 }
-
 
 colnames(physical) <- c("x","y","z")
 res <- EM(data = physical, lambdazero = 100)
 print(res)
 ```
 
-
 ## 2.4
-
 
 ```{r, warning = FALSE}
 lamb <- res$lambda
 physical$EZ <- (2*lamb)/physical$x
 physical$EY <- lamb/physical$x
 
-
-
 ggplot(physical) +
     geom_point(aes(x=x, y=y), col="blue", alpha = 0.6) +
-    geom_point(aes(x=x, y=z), col="red", alpha = 0.6) + 
+    geom_point(aes(x=x, y=z), col="red", alpha = 0.6) +
     geom_point(aes(x=x, y=EZ), col="purple", alpha = 0.6) +
-    geom_point(aes(x=x, y=EY), col="orange", alpha = 0.6) + 
+    geom_point(aes(x=x, y=EY), col="orange", alpha = 0.6) +
     labs(y = "Y and Z")
-
 ```
-
-
