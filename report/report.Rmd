@@ -113,8 +113,10 @@ plot_data <- rbind(rd1, rd2, rd3)
 ggplot() +
     ggtitle("10 Iterations") +
     geom_line(data=func_data, aes(x=x, y=y)) +
-    geom_point(data=plot_data, aes(x=x, y=y, col=prob), size=1) +
-    theme(plot.title=element_text(hjust=0.5))
+    geom_point(data=plot_data, aes(x=x, y=y, col=prob), size=1.5) +
+    geom_point(aes(x=seq(0,30,by = 5), y=genfunc(seq(0,30,by = 5)))) + 
+    theme(plot.title=element_text(hjust=0.5)) + 
+  scale_colour_hue(l=40, c=200)
 ```
 
 ```{r}
@@ -139,8 +141,11 @@ plot_data <- rbind(rd1, rd2, rd3)
 ggplot() +
     ggtitle("100 Iterations") +
     geom_line(data=func_data, aes(x=x, y=y)) +
-    geom_point(data=plot_data, aes(x=x, y=y, col=prob), size=1) +
-    theme(plot.title=element_text(hjust=0.5))
+    geom_point(data=plot_data, aes(x=x, y=y, col=prob), size=1.5) +
+    geom_point(aes(x=seq(0,30,by = 5), y=genfunc(seq(0,30,by = 5))))+
+    theme(plot.title=element_text(hjust=0.5)) + 
+      scale_colour_hue(l=40, c=200)
+
 ```
 
 \newpage
@@ -151,13 +156,13 @@ ggplot() +
 
 ```{r}
 physical <- read.csv("../data/physical1.csv")
-physical
+
 ```
 
 ```{r, warning = FALSE}
 ggplot(physical) +
-    geom_point(aes(x=X, y=Y), col="blue", alpha = 0.6) +
-    geom_point(aes(x=X, y=Z), col="red", alpha = 0.6) + 
+    geom_line(aes(x=X, y=Y), col="blue", alpha = 0.6) +
+    geom_line(aes(x=X, y=Z), col="red", alpha = 0.6) + 
     labs(y = "Y and Z")
 ```
 
@@ -184,10 +189,10 @@ EM <- function(data, lambdazero, maxiter = 500, eps = 0.001){
   Mstep <- function(data, lambda){
     
     n <- nrow(data)
-    r <- sum(is.na(data$z))
+    r <- sum(!is.na(data$z))
     
      ( (sum(data$x * data$y) + 
-      sum(data$x * data$z, na.rm = TRUE) +
+      (1/2)*sum(data$x * data$z, na.rm = TRUE) +
        (n-r) * lambda)/(2*n) )    
     
   }
@@ -213,6 +218,7 @@ res <- EM(data = physical, lambdazero = 100)
 print(res)
 ```
 
+After six iteration the algorithm converges with a lambda value of 10.69.
 
 ## 2.4
 
@@ -225,12 +231,14 @@ physical$EY <- lamb/physical$x
 
 
 ggplot(physical) +
-    geom_point(aes(x=x, y=y), col="blue", alpha = 0.6) +
-    geom_point(aes(x=x, y=z), col="red", alpha = 0.6) + 
+    geom_line(aes(x=x, y=y), col="blue", alpha = 0.6) +
+    geom_line(aes(x=x, y=z), col="red", alpha = 0.6) + 
     geom_point(aes(x=x, y=EZ), col="purple", alpha = 0.6) +
     geom_point(aes(x=x, y=EY), col="orange", alpha = 0.6) + 
     labs(y = "Y and Z")
 
 ```
 
+Overall the expected values for both Y and Z looks resonable and cutting through the data.
 
+The expected values for Z i.e the purple ones looks like a fair approximation of where the missing values are located. For example around x = 7 the purple line is around where the red line has a gap.
