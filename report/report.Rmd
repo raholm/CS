@@ -115,8 +115,8 @@ ggplot() +
     ggtitle("10 Iterations") +
     geom_line(data=func_data, aes(x=x, y=y)) +
     geom_point(data=plot_data, aes(x=x, y=y, col=prob), size=1.5) +
-    geom_point(aes(x=seq(0,30,by = 5), y=genfunc(seq(0,30,by = 5)))) + 
-    theme(plot.title=element_text(hjust=0.5)) + 
+    geom_point(aes(x=seq(0,30,by = 5), y=genfunc(seq(0,30,by = 5)))) +
+    theme(plot.title=element_text(hjust=0.5)) +
   scale_colour_hue(l=40, c=200)
 ```
 
@@ -144,9 +144,8 @@ ggplot() +
     geom_line(data=func_data, aes(x=x, y=y)) +
     geom_point(data=plot_data, aes(x=x, y=y, col=prob), size=1.5) +
     geom_point(aes(x=seq(0,30,by = 5), y=genfunc(seq(0,30,by = 5))))+
-    theme(plot.title=element_text(hjust=0.5)) + 
+    theme(plot.title=element_text(hjust=0.5)) +
       scale_colour_hue(l=40, c=200)
-
 ```
 
 \newpage
@@ -162,7 +161,7 @@ physical <- read.csv("../data/physical1.csv")
 ```{r, warning = FALSE}
 ggplot(physical) +
     geom_line(aes(x=X, y=Y), col="blue", alpha = 0.6) +
-    geom_line(aes(x=X, y=Z), col="red", alpha = 0.6) + 
+    geom_line(aes(x=X, y=Z), col="red", alpha = 0.6) +
     labs(y = "Y and Z")
 ```
 
@@ -246,7 +245,7 @@ To maximize $\lambda$ we take the derivative and set it to zero and find
 
 ```{r}
 EM <- function(data, lambdazero, maxiter = 500, eps = 0.001){
-    
+
   Estep <- function(data,lambda){
         r <- sum(is.na(data$z))
         n <- nrow(data)
@@ -255,7 +254,7 @@ EM <- function(data, lambdazero, maxiter = 500, eps = 0.001){
          sum(data$x * data$y)/lambda -
          sum(data$x * data$z, na.rm = TRUE)/(2*lambda) - (n - r))
 
-  
+
 
     }
 
@@ -291,7 +290,6 @@ print(res)
 
 After six iteration the algorithm converges with a lambda value of 10.69.
 
-
 ## 2.4
 
 ```{r, warning = FALSE}
@@ -301,12 +299,11 @@ physical$EY <- lamb/physical$x
 
 ggplot(physical) +
     geom_line(aes(x=x, y=y), col="blue", alpha = 0.6) +
-    geom_line(aes(x=x, y=z), col="red", alpha = 0.6) + 
+    geom_line(aes(x=x, y=z), col="red", alpha = 0.6) +
     geom_line(aes(x=x, y=EZ), col="purple", alpha = 0.6) +
     geom_line(aes(x=x, y=EY), col="orange", alpha = 0.6) +
     labs(y = "Y and Z")
 ```
-
 
 Overall the expected values for both Y and Z looks resonable and cutting through the data at resonable levels although the data is a bit chaotic.
 
