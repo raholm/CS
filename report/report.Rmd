@@ -248,7 +248,7 @@ To maximize $\lambda$ we take the derivative and set it to zero and find
 EM <- function(data, lambdazero, maxiter = 500, eps = 0.001){
     
   Estep <- function(data,lambda){
-        r <- sum(is.na(data$z))
+        r <- sum(!is.na(data$z))
         n <- nrow(data)
 
         (2 * sum(log(data$x)) - 2 * n * log(2 * lambda) -
@@ -262,7 +262,7 @@ EM <- function(data, lambdazero, maxiter = 500, eps = 0.001){
     Mstep <- function(data, lambda){
 
         n <- nrow(data)
-        r <- sum(is.na(data$z))
+        r <- sum(!is.na(data$z))
 
         ((sum(data$x * data$y) +
           sum(data$x * data$z, na.rm = TRUE) / 2 +
