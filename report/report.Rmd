@@ -95,8 +95,9 @@ pvalue <- sum(npboot$t > 0) / B
 ```{r, echo=FALSE}
 hist(npboot$t, xlim = c(-1,0.7), breaks = 50,
      main = "Histogram for bootstrap t-values", xlab ="T")
-abline(v=pvalue, col = "red", lwd = 2)
-abline(v=mean(npboot$t), col="blue", lwd=2)
+## abline(v=quantile(npboot$t, c(0.95)), col = "red", lwd = 2)
+## abline(v=teststat(loess)(data), col="orange", lwd=2)
+## abline(v=mean(npboot$t), col="blue", lwd=2)
 ```
 
 In this task we use the 2000 calculated T-values from the bootstrap and use these as the T-distribution and thus the share of T-values that do not follow the null-hypothesis will be the p-value. Since it is implied that if the fit of the local regression function has a decreasing pattern it will generate a negative T-value which is seen in the graph in section 1.2. Subsequently the test was formulated as follows:
@@ -202,6 +203,7 @@ bootmean <- function(data,ind){
 
 B <- 2000
 
+set.seed(123456)
 estmean <- boot(data = price$Price,bootmean, R = B)
 
 bias_corrected_estmean <- 2 * estmean$t0 - mean(estmean$t)
